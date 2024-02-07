@@ -20,18 +20,6 @@ class UpdateCustomFieldsRequest(
     private val gson: Gson
 ) : AbstractRequest {
 
-    suspend fun execute(): Response? {
-        return coroutineScope {
-            withContext(Dispatchers.IO) {
-                try {
-                    return@withContext OkHttpClient().newCall(generateRequest()).execute()
-                } catch (e: Exception) {
-                    return@withContext null
-                }
-            }
-        }
-    }
-
     override fun generateRequest(): Request {
         val jsonObject = JSONObject()
         jsonObject.put("conversationId", ticketId)

@@ -136,8 +136,8 @@ class AtlasWebView : WebView {
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
 
-//        loadUrl("file://")
-//        removeJavascriptInterface("FlutterWebView")
+        loadUrl("file://")
+        removeJavascriptInterface("FlutterWebView")
         Log.d("AtlasWebView", "detached")
     }
 

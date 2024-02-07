@@ -7,7 +7,9 @@ import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
+import org.json.JSONObject
 import java.util.concurrent.TimeUnit
+
 
 class WebSocketConnectionListener(val atlasId: String) : WebSocketListener() {
 
@@ -41,6 +43,12 @@ class WebSocketConnectionListener(val atlasId: String) : WebSocketListener() {
 
     override fun onOpen(webSocket: WebSocket, response: Response) {
         this.webSocket = webSocket
+        val jsonObject = JSONObject()
+        jsonObject.put("channel_id", atlasId)
+        jsonObject.put("channel_kind", "CUSTOMER")
+        jsonObject.put("packet_type", "SUBSCRIBE")
+        jsonObject.put("payload",  "{}")
+        webSocket.send(jsonObject.toString())
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {

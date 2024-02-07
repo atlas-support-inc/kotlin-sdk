@@ -121,7 +121,7 @@ object AtlasSdk {
                 }
 
                 webSocketConnectionListener =
-                    WebSocketConnectionListener(user.id).apply { connect() }
+                    WebSocketConnectionListener(user.atlasId!!).apply { connect() }
             }
         }
     }

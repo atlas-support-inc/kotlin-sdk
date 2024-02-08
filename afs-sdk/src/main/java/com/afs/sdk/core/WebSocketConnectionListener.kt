@@ -1,6 +1,7 @@
 package com.afs.sdk.core
 
 import android.util.Log
+import com.google.gson.Gson
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -10,10 +11,12 @@ import okio.ByteString
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
-
-class WebSocketConnectionListener(val atlasId: String) : WebSocketListener() {
+class WebSocketConnectionListener(val atlasId: String, val gson: Gson) : WebSocketListener() {
 
     private var webSocket: WebSocket? = null
+    private val webSocketMessageParser = WebSocketMessageParser(gson)
+
+    var webSocketMessageHandler: WebSocketMessageHandler? = null
 
     private fun run() {
         val client: OkHttpClient = OkHttpClient.Builder()
@@ -34,10 +37,12 @@ class WebSocketConnectionListener(val atlasId: String) : WebSocketListener() {
     }
 
     fun close() {
+        webSocketMessageHandler = null
         webSocket?.close(1000, null)
     }
 
     fun shutdown() {
+        webSocketMessageHandler = null
         webSocket?.cancel()
     }
 
@@ -53,20 +58,25 @@ class WebSocketConnectionListener(val atlasId: String) : WebSocketListener() {
 
     override fun onMessage(webSocket: WebSocket, text: String) {
         Log.d("WebSocketConnectionListener", "MESSAGE: $text")
+        webSocketMessageHandler?.onNewMessage(webSocketMessageParser.parse(text))
     }
 
     override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
-        Log.d("WebSocketConnectionListener", "MESSAGE: " + bytes.hex())
     }
 
     override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
         webSocket.close(1000, null)
         this.webSocket = null
+        this.webSocketMessageHandler = null
         Log.d("WebSocketConnectionListener", "CLOSE: $code $reason")
     }
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
         t.printStackTrace()
+    }
+
+    interface WebSocketMessageHandler {
+        fun onNewMessage(webSocketMessage: WebSocketMessageParser.WebSocketMessage?)
     }
 
 }

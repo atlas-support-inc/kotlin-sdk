@@ -1,14 +1,15 @@
 package com.afs.example.ui
 
-import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.afs.example.databinding.FragmentMainBinding
-import kotlinx.coroutines.Dispatchers
+import com.afs.sdk.AtlasSdk
+import com.afs.sdk.data.AtlasStats
 import kotlinx.coroutines.launch
 
 class MainFragment : Fragment() {
@@ -39,19 +40,34 @@ class MainFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val atlasSdk = (requireActivity().application as ExampleApplication).atlasSDK
+        viewLifecycleOwner.lifecycle.addObserver(atlasSdk)
+
         binding.btnConnect.setOnClickListener {
-            lifecycleScope.launch(Dispatchers.IO) {
+            lifecycleScope.launch {
                 atlasSdk.watchStats(lifecycle)
             }
         }
         binding.btnDisconnect.setOnClickListener {
             atlasSdk.unWatchStats()
         }
+        atlasSdk.atlasStatsUpdateWatcher = object : AtlasSdk.AtlasStatsUpdateWatcher {
+            override fun onStatsUpdate(atlasStats: AtlasStats) {
+                val count = atlasStats.conversations.map { it.unread }.sum()
+                binding.messagesCount.setText("Messages unread: $count")
+            }
+
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+
+        viewLifecycleOwner.lifecycle.addObserver((requireActivity().application as ExampleApplication).atlasSDK)
     }
 
     override fun onPause() {
         super.onPause()
 
-        (requireActivity().application as ExampleApplication).atlasSDK.unWatchStats()
+//        (requireActivity().application as ExampleApplication).atlasSDK.unWatchStats()
     }
 }

@@ -76,9 +76,7 @@ class AtlasWebView : WebView {
                 sdkAtlasJsMessageHandler?.onError("js message: $message, exception: ${e.message}")
                 atlasJsMessageHandler?.onError("js message: $message, exception: ${e.message}")
             }
-
         }
-
     }
 
     init {
@@ -136,6 +134,7 @@ class AtlasWebView : WebView {
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
 
+        removeAtlasJsMessageHandler()
         loadUrl("file://")
         removeJavascriptInterface("FlutterWebView")
         Log.d("AtlasWebView", "detached")

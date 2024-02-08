@@ -70,7 +70,7 @@ class WebViewBottomSheetDialog : BottomSheetDialogFragment() {
     override fun onPause() {
         super.onPause()
 
-//        binding.webview.removeAtlasJsMessageHandler()
+        binding.webview.removeAtlasJsMessageHandler()
     }
 
 }

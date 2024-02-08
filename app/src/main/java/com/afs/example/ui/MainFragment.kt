@@ -44,19 +44,19 @@ class MainFragment : Fragment() {
 
         binding.btnConnect.setOnClickListener {
             lifecycleScope.launch {
+                atlasSdk.atlasStatsUpdateWatcher = object : AtlasSdk.AtlasStatsUpdateWatcher {
+                    override fun onStatsUpdate(atlasStats: AtlasStats) {
+                        val count = atlasStats.conversations.map { it.unread }.sum()
+                        binding.messagesCount.setText("Messages unread: $count")
+                    }
+                }
                 atlasSdk.watchStats(lifecycle)
             }
         }
         binding.btnDisconnect.setOnClickListener {
             atlasSdk.unWatchStats()
         }
-        atlasSdk.atlasStatsUpdateWatcher = object : AtlasSdk.AtlasStatsUpdateWatcher {
-            override fun onStatsUpdate(atlasStats: AtlasStats) {
-                val count = atlasStats.conversations.map { it.unread }.sum()
-                binding.messagesCount.setText("Messages unread: $count")
-            }
 
-        }
     }
 
     override fun onDestroyView() {

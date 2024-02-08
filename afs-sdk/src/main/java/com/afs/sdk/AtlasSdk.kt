@@ -8,6 +8,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.coroutineScope
 import com.afs.sdk.core.WebSocketConnectionListener
 import com.afs.sdk.core.WebSocketMessageParser
 import com.afs.sdk.data.AtlasJsMessageHandler
@@ -136,10 +137,16 @@ object AtlasSdk : DefaultLifecycleObserver {
                                     object : WebSocketConnectionListener.WebSocketMessageHandler {
                                         override fun onNewMessage(webSocketMessage: WebSocketMessageParser.WebSocketMessage?) {
                                             Log.d("ASDK", "$webSocketMessage")
-                                            processWebSocketMessage(webSocketMessage)
+                                            if (processWebSocketMessage(webSocketMessage)) {
 
-                                            if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                                                atlasStatsUpdateWatcher?.onStatsUpdate(atlasStats)
+                                                lifecycle.coroutineScope.launch {
+
+                                                    if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                                        atlasStatsUpdateWatcher?.onStatsUpdate(
+                                                            atlasStats
+                                                        )
+                                                    }
+                                                }
                                             }
                                         }
 
@@ -158,21 +165,22 @@ object AtlasSdk : DefaultLifecycleObserver {
             val conversationIndex =
                 atlasStats.conversations.indexOfFirst { it.id == conversation.id }
             if (conversationIndex == -1) {
-                atlasStats.conversations.add(conversationStats);
+                atlasStats.conversations.add(conversationStats)
             } else {
-                atlasStats.conversations[conversationIndex] = conversationStats;
+                atlasStats.conversations[conversationIndex] = conversationStats
             }
         }
     }
 
-    private fun processWebSocketMessage(webSocketMessage: WebSocketMessageParser.WebSocketMessage?) {
+    private fun processWebSocketMessage(webSocketMessage: WebSocketMessageParser.WebSocketMessage?): Boolean {
+        var requireStatsUpdate = true
         when (webSocketMessage?.packetType) {
             WebSocketMessageParser.WebSocketMessage.PACKET_TYPE_CONVERSATION_UPDATED,
             WebSocketMessageParser.WebSocketMessage.PACKET_TYPE_AGENT_MESSAGE,
             WebSocketMessageParser.WebSocketMessage.PACKET_TYPE_BOT_MESSAGE ->
-                updateConversationStats(webSocketMessage.payload?.conversation);
+                updateConversationStats(webSocketMessage.payload?.conversation)
             WebSocketMessageParser.WebSocketMessage.PACKET_TYPE_MESSAGE_READ -> {
-                webSocketMessage.payload?.conversationId?.takeIf { !it.isNullOrEmpty() }
+                webSocketMessage.payload?.conversationId?.takeIf { it.isNotEmpty() }
                     ?.let { conversationId ->
                         val conversationIndex =
                             atlasStats.conversations.indexOfFirst { it.id == conversationId }
@@ -183,7 +191,7 @@ object AtlasSdk : DefaultLifecycleObserver {
             }
 
             WebSocketMessageParser.WebSocketMessage.PACKET_TYPE_CHATBOT_WIDGET_RESPONSE ->
-                webSocketMessage.payload?.message?.conversationId?.takeIf { !it.isNullOrEmpty() }
+                webSocketMessage.payload?.message?.conversationId?.takeIf { it.isNotEmpty() }
                     ?.let { conversationId ->
                         val conversationIndex =
                             atlasStats.conversations.indexOfFirst { it.id == conversationId }
@@ -203,7 +211,11 @@ object AtlasSdk : DefaultLifecycleObserver {
             WebSocketMessageParser.WebSocketMessage.PACKET_TYPE_CONVERSATION_HIDDEN -> {
                 atlasStats.conversations.removeIf { it.id == webSocketMessage.payload?.conversationId }
             }
+
+            else -> requireStatsUpdate = false
         }
+
+        return requireStatsUpdate
     }
 
     fun unWatchStats() {

@@ -4,13 +4,11 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import android.util.AttributeSet
-import android.util.Log
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.annotation.Keep
-import androidx.databinding.BindingAdapter
 import com.afs.sdk.core.Config
 import com.afs.sdk.data.AtlasJsMessageHandler
 import com.afs.sdk.data.AtlasUser
@@ -18,6 +16,7 @@ import com.afs.sdk.data.InternalJsMessageHandler
 import com.afs.sdk.data.WebViewJsMessage
 import com.google.gson.Gson
 
+@Keep
 @SuppressLint("SetJavaScriptEnabled")
 class AtlasWebView : WebView {
 
@@ -137,7 +136,6 @@ class AtlasWebView : WebView {
         removeAtlasJsMessageHandler()
         loadUrl("file://")
         removeJavascriptInterface("FlutterWebView")
-        Log.d("AtlasWebView", "detached")
     }
 
     @Keep
@@ -147,9 +145,4 @@ class AtlasWebView : WebView {
         fun postMessage(message: String)
 
     }
-}
-
-@BindingAdapter(value = ["bind:appId", "bind:user"], requireAll = true)
-fun set(webView: AtlasWebView, appId: String, user: AtlasUser) {
-    webView.applyConfig(appId, user)
 }

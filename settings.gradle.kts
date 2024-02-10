@@ -16,4 +16,5 @@ dependencyResolutionManagement {
 rootProject.name = "Afs SDK"
 include(":app")
 include(":afs-sdk")
+include(":afs-sdk-aar")
 

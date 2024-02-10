@@ -1,5 +1,6 @@
 package com.afs.sdk.data
 
+import androidx.annotation.Keep
 import androidx.lifecycle.Lifecycle
 
 interface InternalJsMessageHandler {
@@ -10,4 +11,5 @@ interface InternalJsMessageHandler {
     fun onChangeIdentity(atlasId: String?, userId: String?, userHash: String?)
 }
 
+@Keep
 abstract class AtlasJsMessageHandler(val lifecycle: Lifecycle) : InternalJsMessageHandler

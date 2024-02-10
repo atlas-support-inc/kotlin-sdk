@@ -2,6 +2,7 @@ package com.afs.sdk
 
 import android.content.Context
 import android.util.Log
+import androidx.annotation.Keep
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
@@ -25,6 +26,7 @@ import com.google.gson.Gson
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
+@Keep
 object AtlasSdk : DefaultLifecycleObserver {
 
     private val gson = Gson()
@@ -273,6 +275,7 @@ object AtlasSdk : DefaultLifecycleObserver {
     const val PREF_FILE = "atlassdk"
     const val PREF_DATA_NAME = "atlassdk"
 
+    @Keep
     interface AtlasStatsUpdateWatcher {
         fun onStatsUpdate(atlasStats: AtlasStats)
     }

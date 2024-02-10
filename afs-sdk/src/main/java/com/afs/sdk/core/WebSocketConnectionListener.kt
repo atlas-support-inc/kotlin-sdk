@@ -68,7 +68,6 @@ class WebSocketConnectionListener(val atlasId: String, val gson: Gson) : WebSock
         webSocket.close(1000, null)
         this.webSocket = null
         this.webSocketMessageHandler = null
-        Log.d("WebSocketConnectionListener", "CLOSE: $code $reason")
     }
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {

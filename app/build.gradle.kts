@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.afs.example"
+    namespace = "com.atlas.sdk.example"
     compileSdk = 34
 
     buildFeatures {
@@ -15,7 +15,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.afs.example"
+        applicationId = "com.atlas.sdk.example"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -45,9 +45,9 @@ android {
 
 dependencies {
     // if you wanna use sdk from sources use this one
-    // implementation(project(mapOf("path" to ":afs-sdk-aar")))
+     implementation(project(mapOf("path" to ":atlas-sdk")))
     // if you wannt use aar file use this one
-    implementation(project(mapOf("path" to ":afs-sdk-aar")))
+//    implementation(project(mapOf("path" to ":atlas-sdk-aar")))
 
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")

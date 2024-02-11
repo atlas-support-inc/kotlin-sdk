@@ -13,8 +13,8 @@ dependencyResolutionManagement {
     }
 
 }
-rootProject.name = "Afs SDK"
+rootProject.name = "Atlas SDK"
 include(":app")
-include(":afs-sdk")
-include(":afs-sdk-aar")
+include(":atlas-sdk")
+include(":atlas-sdk-aar")
 

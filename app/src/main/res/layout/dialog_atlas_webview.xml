@@ -10,11 +10,11 @@
 
         <variable
             name="user"
-            type="AtlasUser" />
+            type="com.atlas.sdk.data.AtlasUser" />
 
         <import type="android.view.View" />
 
-        <import type="com.afs.sdk.data.AtlasUser" />
+        <import type="com.atlas.sdk.data.AtlasUser" />
 
     </data>
 
@@ -27,7 +27,7 @@
         android:paddingEnd="24dp"
         android:paddingBottom="16dp">
 
-        <com.afs.sdk.view.AtlasWebView
+        <com.atlas.sdk.view.AtlasWebView
             android:id="@+id/webview"
             android:layout_width="match_parent"
             android:layout_height="450dp"

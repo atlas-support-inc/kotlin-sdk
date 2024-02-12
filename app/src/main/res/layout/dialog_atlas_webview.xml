@@ -21,11 +21,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/container"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingStart="24dp"
-        android:paddingTop="16dp"
-        android:paddingEnd="24dp"
-        android:paddingBottom="16dp">
+        android:layout_height="wrap_content">
 
         <com.atlas.sdk.view.AtlasWebView
             android:id="@+id/webview"

@@ -46,7 +46,7 @@ android {
 dependencies {
     // if you wanna use sdk from sources use this one
      implementation(project(mapOf("path" to ":atlas-sdk")))
-    // if you wannt use aar file use this one
+    // if you want use aar file use this one
 //    implementation(project(mapOf("path" to ":atlas-sdk-aar")))
 
     implementation("androidx.core:core-ktx:1.12.0")

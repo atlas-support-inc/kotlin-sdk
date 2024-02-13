@@ -1,6 +1,7 @@
 package com.atlas.sdk.core
 
 import android.util.Log
+import com.atlas.sdk.AtlasSdk
 import com.google.gson.Gson
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -27,9 +28,6 @@ class WebSocketConnectionListener(val atlasId: String, val gson: Gson) : WebSock
             .url(Config.ATLAS_WEB_SOCKET_BASE_URL.plus("/ws/CUSTOMER::$atlasId"))
             .build()
         client.newWebSocket(request, this)
-
-        // Trigger shutdown of the dispatcher's executor so this process can exit cleanly.
-//        client.dispatcher.executorService.shutdown()
     }
 
     fun connect() {
@@ -39,11 +37,6 @@ class WebSocketConnectionListener(val atlasId: String, val gson: Gson) : WebSock
     fun close() {
         webSocketMessageHandler = null
         webSocket?.close(1000, null)
-    }
-
-    fun shutdown() {
-        webSocketMessageHandler = null
-        webSocket?.cancel()
     }
 
     override fun onOpen(webSocket: WebSocket, response: Response) {
@@ -57,7 +50,7 @@ class WebSocketConnectionListener(val atlasId: String, val gson: Gson) : WebSock
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {
-        Log.d("WebSocketConnectionListener", "MESSAGE: $text")
+        Log.d(AtlasSdk.TAG, "onMessage: $text")
         webSocketMessageHandler?.onNewMessage(webSocketMessageParser.parse(text))
     }
 

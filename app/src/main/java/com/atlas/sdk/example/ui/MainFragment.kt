@@ -9,9 +9,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.atlas.sdk.example.databinding.FragmentMainBinding
 import com.atlas.sdk.AtlasSdk
 import com.atlas.sdk.data.AtlasStats
+import com.atlas.sdk.example.databinding.FragmentMainBinding
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class MainFragment : Fragment() {
@@ -26,6 +27,7 @@ class MainFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
     }
 
@@ -42,44 +44,58 @@ class MainFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val atlasSdk = (requireActivity().application as ExampleApplication).atlasSDK
-
-        // you can use lifecycle observer to make sure app does not receive anything from the Atlas SDK
-        viewLifecycleOwner.lifecycle.addObserver(atlasSdk)
+        atlasSdk.atlasStatsLive.observe(viewLifecycleOwner) { stats ->
+            val count = stats?.conversations?.map { it.unread }?.sum() ?: 0
+            binding.txtMsgFromObserver.setText("Observer: messages unread: $count, timestamp: ${System.currentTimeMillis()}")
+        }
 
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                atlasSdk.atlasStatsUpdateWatcher = object : AtlasSdk.AtlasStatsUpdateWatcher {
+                atlasSdk.registerAtlasStatsUpdateWatcher(object : AtlasSdk.AtlasStatsUpdateWatcher {
                     override fun onStatsUpdate(atlasStats: AtlasStats) {
 
-                        val count = atlasStats.conversations.map { it.unread }.sum()
-                        binding.messagesCount.setText("Messages unread: $count")
+                        lifecycleScope.launch(Dispatchers.Main) {
+                            val count = atlasStats.conversations.map { it.unread }.sum()
+                            binding.txtMsgFromWatcher.setText("Watcher: messages unread: $count, timestamp: ${System.currentTimeMillis()}")
+                        }
                     }
-                }
+                })
             }
         }
 
         binding.btnConnect.setOnClickListener {
-            lifecycleScope.launch {
-                atlasSdk.watchStats(lifecycle)
-            }
+            viewModel.startWatchingStats()
         }
         binding.btnDisconnect.setOnClickListener {
             atlasSdk.unWatchStats()
         }
 
+        binding.btnUser1.setOnClickListener {
+            lifecycleScope.launch {
+                (requireActivity().application as ExampleApplication).atlasSDK.identify(
+                    ExampleApplication.SAMPLE_ATLAS_USER
+                )
+            }
+        }
+
+        binding.btnUserReset.setOnClickListener {
+            lifecycleScope.launch {
+                (requireActivity().application as ExampleApplication).atlasSDK.identify(null)
+            }
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
 
-        // don't forget to remove the observer
-        viewLifecycleOwner.lifecycle.removeObserver((requireActivity().application as ExampleApplication).atlasSDK)
+        // stopping watching the stats globally
+        (requireActivity().application as ExampleApplication).atlasSDK.unWatchStats()
     }
 
     override fun onPause() {
         super.onPause()
 
-        // OR you can manually stop watching for the stats
-//        (requireActivity().application as ExampleApplication).atlasSDK.unWatchStats()
+        (requireActivity().application as ExampleApplication).atlasSDK.unregisterAtlasStatsUpdateWatcher()
+
     }
 }

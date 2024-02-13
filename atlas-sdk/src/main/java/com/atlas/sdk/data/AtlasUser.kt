@@ -12,4 +12,12 @@ data class AtlasUser(
     var atlasId: String? = null,
     val name: String? = null,
     val email: String? = null
-) : Parcelable
+) : Parcelable {
+
+    val isEmpty
+        get() = id.isEmpty() && hash.isEmpty() && atlasId.isNullOrEmpty()
+
+    companion object {
+        val EMPTY_USER = AtlasUser("", "")
+    }
+}

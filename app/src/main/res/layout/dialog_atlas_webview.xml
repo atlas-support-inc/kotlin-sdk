@@ -29,8 +29,10 @@
 
         <com.atlas.sdk.view.AtlasWebView
             android:id="@+id/webview"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
             android:layout_width="match_parent"
             android:layout_height="450dp"
             app:layout_constraintTop_toTopOf="parent" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

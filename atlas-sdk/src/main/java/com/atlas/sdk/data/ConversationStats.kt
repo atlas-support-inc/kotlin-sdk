@@ -17,7 +17,7 @@ data class ConversationStats(val id: String, var unread: Int, var closed: Boolea
                     unread++
                 }
             }
-            return ConversationStats(conversation.id, unread, conversation.closed == true)
+            return ConversationStats(conversation.id, unread, conversation.closedAt != null)
         }
     }
 }

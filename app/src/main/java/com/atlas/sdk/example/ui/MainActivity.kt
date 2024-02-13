@@ -14,6 +14,7 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
         binding.lifecycleOwner = this
 
         if (savedInstanceState == null) {
@@ -23,8 +24,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnFab.setOnClickListener {
-            (application as ExampleApplication).atlasSDK.identify(ExampleApplication.SAMPLE_ATLAS_USER)
-
             val dialog = WebViewBottomSheetDialog()
             dialog.show(supportFragmentManager, WebViewBottomSheetDialog::class.simpleName)
         }

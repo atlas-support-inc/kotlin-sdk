@@ -2,12 +2,10 @@ package com.atlas.sdk.api
 
 import com.atlas.sdk.core.Config
 import com.atlas.sdk.data.AtlasUser
-import com.google.gson.Gson
 import okhttp3.Request
 
 class ConversationsRequest(
-    private val atlasUser: AtlasUser,
-    private val gson: Gson
+    private val atlasUser: AtlasUser
 ): AbstractRequest {
 
     override fun generateRequest(): Request {

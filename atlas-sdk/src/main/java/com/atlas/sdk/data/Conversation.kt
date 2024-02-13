@@ -3,7 +3,7 @@ package com.atlas.sdk.data
 import androidx.annotation.Keep
 
 @Keep
-data class Conversation(val id: String, val messages: List<Message>, val closed: Boolean?) {
+data class Conversation(val id: String, val messages: List<Message>, val closedAt: String?) {
     @Keep
     data class Message(val read: Boolean? = null, val side: Int, val closed: Boolean) {
 

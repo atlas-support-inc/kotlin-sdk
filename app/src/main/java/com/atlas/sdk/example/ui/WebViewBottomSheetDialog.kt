@@ -6,8 +6,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
-import com.atlas.sdk.example.databinding.DialogAtlasWebviewBinding
 import com.atlas.sdk.data.AtlasJsMessageHandler
+import com.atlas.sdk.example.databinding.DialogAtlasWebviewBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 class WebViewBottomSheetDialog : BottomSheetDialogFragment() {
@@ -59,9 +59,6 @@ class WebViewBottomSheetDialog : BottomSheetDialogFragment() {
                             "WebViewBottomSheetDialog",
                             "onChangeIdentity: $atlasId $userId $userHash"
                         )
-                        val atlasSdk =
-                            (requireActivity().application as ExampleApplication).atlasSDK
-                        binding.webview.setUser(atlasSdk.getUser())
                     }
                 }
             }

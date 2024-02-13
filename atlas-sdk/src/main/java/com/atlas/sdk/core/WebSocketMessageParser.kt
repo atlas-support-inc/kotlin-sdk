@@ -1,7 +1,6 @@
 package com.atlas.sdk.core
 
 import androidx.annotation.Keep
-import com.atlas.sdk.data.Conversation
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 
@@ -13,14 +12,8 @@ class WebSocketMessageParser(val gson: Gson) {
     data class WebSocketMessage(
         @SerializedName("packet_type")
         val packetType: String,
-        val payload: Payload?
+        val payload: Any?
     ) {
-        @Keep
-        data class Payload(val conversation: Conversation?, val conversationId: String?,
-                           val message: Message?)
-        @Keep
-        data class Message(val conversationId: String?)
-
         companion object {
             const val PACKET_TYPE_CONVERSATION_UPDATED = "CONVERSATION_UPDATED"
             const val PACKET_TYPE_AGENT_MESSAGE = "AGENT_MESSAGE"

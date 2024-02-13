@@ -1,15 +1,16 @@
 package com.atlas.sdk
 
+import android.app.Application
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.annotation.Keep
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.coroutineScope
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.atlas.sdk.core.WebSocketConnectionListener
 import com.atlas.sdk.core.WebSocketMessageParser
 import com.atlas.sdk.data.AtlasJsMessageHandler
@@ -23,31 +24,37 @@ import com.atlas.sdk.repository.UserLocalRepository
 import com.atlas.sdk.repository.UserRemoteRepository
 import com.atlas.sdk.view.AtlasWebView
 import com.google.gson.Gson
+import com.google.gson.internal.LinkedTreeMap
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Keep
-object AtlasSdk : DefaultLifecycleObserver {
+object AtlasSdk {
 
     private val gson = Gson()
 
     private lateinit var userLocalRepository: UserLocalRepository
+    private var localBroadcastManager: LocalBroadcastManager? = null
     private val userRemoteRepository = UserRemoteRepository(gson)
     private val conversationsRemoteRepository = ConversationsRemoteRepository(gson)
 
     private lateinit var appId: String
     private var atlasUser: AtlasUser? = null
+    val atlasUserLive: LiveData<AtlasUser?> = MutableLiveData()
 
     private val internalAtlasJsMessageHandler = object : InternalJsMessageHandler {
         override fun onError(message: String?) {
-            Log.d("AtlasSdk", "onError:$message")
+            Log.d(TAG, "onError:$message")
             atlasJsMessageHandlers.forEach {
                 it.onError(message)
             }
         }
 
         override fun onNewTicket(ticketId: String?) {
-            Log.d("AtlasSdk", "onNewTicket:$ticketId")
+            Log.d(TAG, "onNewTicket:$ticketId")
             ticketId?.let {
                 GlobalScope.launch {
                     updateCustomFields(ticketId, mapOf("newTicketIsHere" to ticketId))
@@ -59,22 +66,15 @@ object AtlasSdk : DefaultLifecycleObserver {
         }
 
         override fun onChangeIdentity(atlasId: String?, userId: String?, userHash: String?) {
-            Log.d("AtlasSdk", "onChangeIdentity:$atlasId $userId $userHash")
+            Log.d(TAG, "onChangeIdentity:$atlasId $userId $userHash")
             val user = if (atlasUser == null)
                 AtlasUser(userId ?: "", userHash ?: "", atlasId)
             else
                 atlasUser!!.apply { this.atlasId = atlasId }
 
-            identify(user)
-
             GlobalScope.launch {
-                userLocalRepository.storeIdentity(user)
+                identify(user)
             }
-
-            atlasJsMessageHandlers.forEach {
-                it.onChangeIdentity(atlasId, userId, userHash)
-            }
-
         }
     }
 
@@ -93,12 +93,22 @@ object AtlasSdk : DefaultLifecycleObserver {
 
     private var webSocketConnectionListener: WebSocketConnectionListener? = null
     private var atlasStats = AtlasStats()
+    val atlasStatsLive: LiveData<AtlasStats?> = MutableLiveData()
 
-    var atlasStatsUpdateWatcher: AtlasStatsUpdateWatcher? = null
+    private var atlasStatsUpdateWatcher: AtlasStatsUpdateWatcher? = null
+    fun registerAtlasStatsUpdateWatcher(atlasStatsUpdateWatcher: AtlasStatsUpdateWatcher?) {
+        this.atlasStatsUpdateWatcher = atlasStatsUpdateWatcher
+    }
 
-    fun init(context: Context, appId: String) {
-        AtlasSdk.appId = appId
+    fun unregisterAtlasStatsUpdateWatcher() {
+        this.atlasStatsUpdateWatcher = null
+    }
 
+    fun init(context: Application, appId: String) {
+
+        this.localBroadcastManager = LocalBroadcastManager.getInstance(context)
+
+        this.appId = appId
         userLocalRepository = UserLocalRepository(getSharedPreferences(context), gson)
 
         GlobalScope.launch {
@@ -110,8 +120,39 @@ object AtlasSdk : DefaultLifecycleObserver {
 
     fun getUser(): AtlasUser? = atlasUser
 
-    fun identify(user: AtlasUser?) {
-        atlasUser = user
+    suspend fun identify(user: AtlasUser?) {
+        coroutineScope {
+            if (user == null || user.isEmpty) {
+                atlasUser = null
+                withContext(Dispatchers.IO) {
+                    userLocalRepository.storeIdentity(AtlasUser.EMPTY_USER)
+                }
+                unWatchStats()
+                return@coroutineScope
+            }
+
+            val loggedInUser = login(user)
+            val isItNewUser =
+                atlasUser?.atlasId.isNullOrEmpty() || loggedInUser?.atlasId != atlasUser?.atlasId
+            if (isItNewUser && loggedInUser?.atlasId.isNullOrEmpty().not()) {
+                atlasUser = loggedInUser
+                (atlasUserLive as MutableLiveData).postValue(atlasUser)
+
+                localBroadcastManager?.sendBroadcast(Intent().apply {
+                    action = ON_CHANGE_IDENTITY_ACTION
+                    putExtra(AtlasUser::class.java.simpleName, atlasUser)
+                })
+
+                atlasJsMessageHandlers.forEach {
+                    it.onChangeIdentity(atlasUser?.atlasId, atlasUser?.id, atlasUser?.hash)
+                }
+
+                withContext(Dispatchers.IO) {
+                    userLocalRepository.storeIdentity(atlasUser!!)
+                }
+                watchStats()
+            }
+        }
     }
 
     fun bindAtlasWebView(atlasWebView: AtlasWebView) {
@@ -119,46 +160,54 @@ object AtlasSdk : DefaultLifecycleObserver {
         atlasWebView.applyConfig(appId, atlasUser)
     }
 
-    suspend fun watchStats(lifecycle: Lifecycle) {
-        if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-            login()?.let { user ->
-                if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                    fetchConversations(user)?.let { conversationStats ->
-                        atlasStats.conversations.clear()
-                        atlasStats.conversations.addAll(conversationStats)
+    suspend fun watchStats() {
+        coroutineScope {
+            atlasUser?.takeIf { it.atlasId.isNullOrEmpty().not() }?.let { user ->
+                fetchConversations(user)?.let { conversationStats ->
+                    atlasStats.conversations.clear()
+                    atlasStats.conversations.addAll(conversationStats)
+                    (atlasStatsLive as MutableLiveData).postValue(atlasStats)
 
-                        atlasStatsUpdateWatcher?.onStatsUpdate(atlasStats)
-                    }
+                    atlasStatsUpdateWatcher?.onStatsUpdate(atlasStats)
+                }
 
-                    if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                        webSocketConnectionListener?.shutdown()
+                // only in case this is new user we want to reastablish connection
+                if (webSocketConnectionListener?.atlasId != user.atlasId) {
+                    webSocketConnectionListener?.close()
 
-                        webSocketConnectionListener =
-                            WebSocketConnectionListener(user.atlasId!!, gson).apply {
-                                webSocketMessageHandler =
-                                    object : WebSocketConnectionListener.WebSocketMessageHandler {
-                                        override fun onNewMessage(webSocketMessage: WebSocketMessageParser.WebSocketMessage?) {
-                                            Log.d("ASDK", "$webSocketMessage")
-                                            if (processWebSocketMessage(webSocketMessage)) {
+                    webSocketConnectionListener =
+                        WebSocketConnectionListener(user.atlasId!!, gson).apply {
+                            webSocketMessageHandler =
+                                object : WebSocketConnectionListener.WebSocketMessageHandler {
+                                    override fun onNewMessage(webSocketMessage: WebSocketMessageParser.WebSocketMessage?) {
+                                        Log.d(TAG, "$webSocketMessage")
 
-                                                lifecycle.coroutineScope.launch {
+                                        // we send updates only if there have been changes
+                                        if (processWebSocketMessage(webSocketMessage)) {
 
-                                                    if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                                                        atlasStatsUpdateWatcher?.onStatsUpdate(
-                                                            atlasStats
-                                                        )
-                                                    }
-                                                }
-                                            }
+                                            (atlasStatsLive as MutableLiveData).postValue(
+                                                atlasStats
+                                            )
+
+                                            atlasStatsUpdateWatcher?.onStatsUpdate(atlasStats)
                                         }
-
                                     }
-                                connect()
-                            }
-                    }
+
+                                }
+                            connect()
+                        }
                 }
             }
         }
+    }
+
+    fun unWatchStats() {
+        atlasStats.conversations.clear()
+        (atlasStatsLive as MutableLiveData).postValue(atlasStats)
+
+        atlasStatsUpdateWatcher?.onStatsUpdate(atlasStats)
+
+        webSocketConnectionListener?.close()
     }
 
     private fun updateConversationStats(conversation: Conversation?) {
@@ -177,41 +226,84 @@ object AtlasSdk : DefaultLifecycleObserver {
     private fun processWebSocketMessage(webSocketMessage: WebSocketMessageParser.WebSocketMessage?): Boolean {
         var requireStatsUpdate = true
         when (webSocketMessage?.packetType) {
-            WebSocketMessageParser.WebSocketMessage.PACKET_TYPE_CONVERSATION_UPDATED,
-            WebSocketMessageParser.WebSocketMessage.PACKET_TYPE_AGENT_MESSAGE,
-            WebSocketMessageParser.WebSocketMessage.PACKET_TYPE_BOT_MESSAGE ->
-                updateConversationStats(webSocketMessage.payload?.conversation)
-            WebSocketMessageParser.WebSocketMessage.PACKET_TYPE_MESSAGE_READ -> {
-                webSocketMessage.payload?.conversationId?.takeIf { it.isNotEmpty() }
-                    ?.let { conversationId ->
-                        val conversationIndex =
-                            atlasStats.conversations.indexOfFirst { it.id == conversationId }
-                        if (conversationIndex >= 0) {
-                            atlasStats.conversations[conversationIndex].unread = 0
-                        }
-                    }
-            }
-
-            WebSocketMessageParser.WebSocketMessage.PACKET_TYPE_CHATBOT_WIDGET_RESPONSE ->
-                webSocketMessage.payload?.message?.conversationId?.takeIf { it.isNotEmpty() }
-                    ?.let { conversationId ->
-                        val conversationIndex =
-                            atlasStats.conversations.indexOfFirst { it.id == conversationId }
-                        if (conversationIndex >= 0) {
-                            atlasStats.conversations[conversationIndex].unread++
-                        } else {
-                            atlasStats.conversations.add(
-                                ConversationStats(
-                                    conversationId,
-                                    1,
-                                    false
+            WebSocketMessageParser.WebSocketMessage.PACKET_TYPE_CONVERSATION_UPDATED -> {
+                (webSocketMessage.payload as? Map<String, String>)?.let { payload ->
+                    (payload["conversation"] as? Map<String, Any?>)?.let { conversation ->
+                        if (conversation["id"] != null) {
+                            updateConversationStats(
+                                Conversation(
+                                    (conversation["id"] as? String) ?: "",
+                                    (conversation["messages"] as? ArrayList<LinkedTreeMap<String, Any?>>)?.map {
+                                        Conversation.Message(
+                                            it["read"] as? Boolean,
+                                            (it["read"] as? Double)?.toInt()
+                                                ?: Conversation.Message.MessageSide.AGENT.value,
+                                            (it["closed"] as? Boolean) ?: false
+                                        )
+                                    } ?: emptyList<Conversation.Message>(),
+                                    conversation["closedAt"] as? String
                                 )
                             )
                         }
                     }
+                }
+            }
+
+            WebSocketMessageParser.WebSocketMessage.PACKET_TYPE_BOT_MESSAGE,
+            WebSocketMessageParser.WebSocketMessage.PACKET_TYPE_AGENT_MESSAGE -> {
+                (webSocketMessage.payload as? Map<String, String>)?.let { payload ->
+                    gson.fromJson(
+                        payload["conversation"],
+                        Conversation::class.java
+                    )?.let { conversation ->
+                        updateConversationStats(conversation)
+                    }
+                }
+            }
+
+            WebSocketMessageParser.WebSocketMessage.PACKET_TYPE_MESSAGE_READ -> {
+                (webSocketMessage.payload as? Map<String, String>)?.let { payload ->
+                    payload["conversationId"]?.takeIf { it.isNotEmpty() }
+                        ?.let { conversationId ->
+                            val conversationIndex =
+                                atlasStats.conversations.indexOfFirst { it.id == conversationId }
+                            if (conversationIndex >= 0) {
+                                atlasStats.conversations[conversationIndex].unread = 0
+                            }
+                        }
+                }
+            }
+
+            WebSocketMessageParser.WebSocketMessage.PACKET_TYPE_CHATBOT_WIDGET_RESPONSE -> {
+                (webSocketMessage.payload as? Map<String, String>)?.let { payload ->
+                    (payload["message"] as? Map<String, String>)?.let { msg ->
+                        msg["conversationId"]?.takeIf { it.isNotEmpty() }
+                            ?.let { conversationId ->
+                                val conversationIndex =
+                                    atlasStats.conversations.indexOfFirst { it.id == conversationId }
+                                if (conversationIndex >= 0) {
+                                    atlasStats.conversations[conversationIndex].unread++
+                                } else {
+                                    atlasStats.conversations.add(
+                                        ConversationStats(
+                                            conversationId,
+                                            1,
+                                            false
+                                        )
+                                    )
+                                }
+                            }
+                    }
+                }
+            }
 
             WebSocketMessageParser.WebSocketMessage.PACKET_TYPE_CONVERSATION_HIDDEN -> {
-                atlasStats.conversations.removeIf { it.id == webSocketMessage.payload?.conversationId }
+                (webSocketMessage.payload as? Map<String, String>)?.let { payload ->
+                    payload["conversationId"]?.takeIf { it.isNotEmpty() }
+                        ?.let { conversationId ->
+                            atlasStats.conversations.removeIf { it.id == conversationId }
+                        }
+                }
             }
 
             else -> requireStatsUpdate = false
@@ -220,31 +312,20 @@ object AtlasSdk : DefaultLifecycleObserver {
         return requireStatsUpdate
     }
 
-    fun unWatchStats() {
-        atlasStatsUpdateWatcher = null
-        webSocketConnectionListener?.close()
-    }
-
-    private suspend fun login(): AtlasUser? {
-        atlasUser?.let { _atlasUser ->
-            if (_atlasUser.id.isNotEmpty()) {
+    private suspend fun login(user: AtlasUser?): AtlasUser? {
+        user?.let { _atlasUser ->
+            if (_atlasUser.id.isNotEmpty() && _atlasUser.hash.isNotEmpty() && _atlasUser.atlasId.isNullOrEmpty()) {
                 val response = userRemoteRepository.login(appId, _atlasUser)
                 if (response != null && response.isSuccessful) {
-                    // todo we may have OR Not have atlasId in the beginning
+                    // we may have OR may not have atlasId in the beginning
                     // but now we should have it in response
-                    _atlasUser.copy(atlasId = response.id).run {
-                        identify(this)
-
-                        //storing identity
-                        userLocalRepository.storeIdentity(this)
-
-                        return this
-                    }
+                    return _atlasUser.copy(atlasId = response.id)
                 }
+            } else {
+                return _atlasUser
             }
         }
         return null
-
     }
 
     private suspend fun fetchConversations(atlasUser: AtlasUser): List<ConversationStats>? {
@@ -256,13 +337,9 @@ object AtlasSdk : DefaultLifecycleObserver {
     }
 
     private suspend fun updateCustomFields(ticketId: String, data: Map<String, Any>) {
-        atlasUser?.let { _atlasUser ->
-            userRemoteRepository.updateCustomFields(_atlasUser, ticketId, data)
+        atlasUser?.let {
+            userRemoteRepository.updateCustomFields(it, ticketId, data)
         }
-    }
-
-    override fun onStop(owner: LifecycleOwner) {
-        unWatchStats()
     }
 
     private fun getSharedPreferences(context: Context): DataStore<Preferences> {
@@ -275,8 +352,15 @@ object AtlasSdk : DefaultLifecycleObserver {
     const val PREF_FILE = "atlassdk"
     const val PREF_DATA_NAME = "atlassdk"
 
+    const val ON_ERROR_ACTION = "ON_ERROR_ACTION"
+    const val ON_NEW_TICKET_ACTION = "ON_NEW_TICKET_ACTION"
+    const val ON_CHANGE_IDENTITY_ACTION = "ON_CHANGE_IDENTITY_ACTION"
+
+    const val TAG = "AtlasSdk"
+
     @Keep
     interface AtlasStatsUpdateWatcher {
         fun onStatsUpdate(atlasStats: AtlasStats)
     }
+
 }

@@ -10,12 +10,7 @@ class ConversationsRemoteRepository(gson: Gson) : AbstractRemoteRepository(gson)
     suspend fun fetchConversations(
         atlasUser: AtlasUser
     ): ConversationsResponse? {
-        return executeWithResponse<ConversationsResponse>(
-            ConversationsRequest(
-                atlasUser,
-                gson
-            ).generateRequest()
-        )
+        return executeWithResponse(ConversationsRequest(atlasUser).generateRequest())
     }
 
 }

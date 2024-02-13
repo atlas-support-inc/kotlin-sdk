@@ -1,14 +1,20 @@
 package com.atlas.sdk.view
 
 import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.net.Uri
+import android.os.Build
 import android.util.AttributeSet
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.annotation.Keep
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.atlas.sdk.AtlasSdk
 import com.atlas.sdk.core.Config
 import com.atlas.sdk.data.AtlasJsMessageHandler
 import com.atlas.sdk.data.AtlasUser
@@ -19,6 +25,11 @@ import com.google.gson.Gson
 @Keep
 @SuppressLint("SetJavaScriptEnabled")
 class AtlasWebView : WebView {
+
+    private var intentFilter = IntentFilter().apply {
+        addAction(AtlasSdk.ON_CHANGE_IDENTITY_ACTION)
+    }
+    private var receiver: BroadcastReceiver? = null
 
     private var appId: String = ""
     fun setAppId(appId: String) {
@@ -39,6 +50,7 @@ class AtlasWebView : WebView {
     fun setAtlasJsMessageHandler(atlasJsMessageHandler: AtlasJsMessageHandler?) {
         this.atlasJsMessageHandler = atlasJsMessageHandler
     }
+
     fun removeAtlasJsMessageHandler() {
         this.atlasJsMessageHandler = null
     }
@@ -55,6 +67,7 @@ class AtlasWebView : WebView {
                         sdkAtlasJsMessageHandler?.onError(webViewJsMessage.errorMessage)
                         atlasJsMessageHandler?.onError(webViewJsMessage.errorMessage)
                     }
+
                     Config.MESSAGE_TYPE_NEW_TICKET -> {
                         sdkAtlasJsMessageHandler?.onNewTicket(webViewJsMessage.ticketId)
                         atlasJsMessageHandler?.onNewTicket(webViewJsMessage.ticketId)
@@ -62,10 +75,14 @@ class AtlasWebView : WebView {
 
                     Config.MESSAGE_TYPE_CHANGE_IDENTITY -> {
                         sdkAtlasJsMessageHandler?.onChangeIdentity(
-                            webViewJsMessage.atlasId, webViewJsMessage.userId, webViewJsMessage.userHash
+                            webViewJsMessage.atlasId,
+                            webViewJsMessage.userId,
+                            webViewJsMessage.userHash
                         )
                         atlasJsMessageHandler?.onChangeIdentity(
-                            webViewJsMessage.atlasId, webViewJsMessage.userId, webViewJsMessage.userHash
+                            webViewJsMessage.atlasId,
+                            webViewJsMessage.userId,
+                            webViewJsMessage.userHash
                         )
                     }
 
@@ -130,8 +147,43 @@ class AtlasWebView : WebView {
         )
     }
 
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+
+        receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                when (intent?.action) {
+                    AtlasSdk.ON_CHANGE_IDENTITY_ACTION -> {
+                        (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            intent.extras?.getParcelable(
+                                AtlasUser::class.java.simpleName,
+                                AtlasUser::class.java
+                            )
+                        } else {
+                            intent.extras?.getParcelable<AtlasUser>(AtlasUser::class.java.simpleName)
+                        })?.let { intentUser ->
+                            if (atlasUser?.atlasId != intentUser.atlasId) {
+                                setUser(intentUser)
+                                openPage()
+                            } else {
+                                setUser(intentUser)
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+        LocalBroadcastManager.getInstance(context).registerReceiver(receiver!!, intentFilter)
+    }
+
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
+
+        receiver?.let {
+            LocalBroadcastManager.getInstance(context).unregisterReceiver(it)
+        }
+        receiver = null
 
         removeAtlasJsMessageHandler()
         loadUrl("file://")

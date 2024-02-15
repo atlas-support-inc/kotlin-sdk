@@ -1,7 +1,5 @@
 package com.atlas.sdk.core
 
-import android.util.Log
-import com.atlas.sdk.AtlasSdk
 import com.google.gson.Gson
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -50,7 +48,7 @@ class WebSocketConnectionListener(val atlasId: String, val gson: Gson) : WebSock
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {
-        Log.d(AtlasSdk.TAG, "onMessage: $text")
+//        Log.d(AtlasSdk.TAG, "onMessage: $text")
         webSocketMessageHandler?.onNewMessage(webSocketMessageParser.parse(text))
     }
 

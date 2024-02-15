@@ -24,8 +24,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnFab.setOnClickListener {
-            val dialog = WebViewBottomSheetDialog()
-            dialog.show(supportFragmentManager, WebViewBottomSheetDialog::class.simpleName)
+            val dialog = AtlasViewBottomSheetDialog()
+            dialog.show(supportFragmentManager, AtlasViewBottomSheetDialog::class.simpleName)
         }
     }
 

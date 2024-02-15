@@ -23,8 +23,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <com.atlas.sdk.view.AtlasWebView
-            android:id="@+id/webview"
+        <com.atlas.sdk.view.AtlasView
+            android:id="@+id/atlasView"
             android:layout_marginTop="@dimen/activity_vertical_margin"
             android:layout_width="match_parent"
             android:layout_height="450dp"

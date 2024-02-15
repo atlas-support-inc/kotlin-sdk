@@ -16,15 +16,14 @@ import androidx.annotation.Keep
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.atlas.sdk.AtlasSdk
 import com.atlas.sdk.core.Config
-import com.atlas.sdk.data.AtlasJsMessageHandler
+import com.atlas.sdk.data.AtlasMessageHandler
 import com.atlas.sdk.data.AtlasUser
-import com.atlas.sdk.data.InternalJsMessageHandler
-import com.atlas.sdk.data.WebViewJsMessage
+import com.atlas.sdk.data.InternalMessageHandler
 import com.google.gson.Gson
 
 @Keep
 @SuppressLint("SetJavaScriptEnabled")
-class AtlasWebView : WebView {
+class AtlasView : WebView {
 
     private var intentFilter = IntentFilter().apply {
         addAction(AtlasSdk.ON_CHANGE_IDENTITY_ACTION)
@@ -41,56 +40,57 @@ class AtlasWebView : WebView {
         this.atlasUser = user
     }
 
-    private var sdkAtlasJsMessageHandler: InternalJsMessageHandler? = null
-    fun setSdkAtlasJsMessageHandler(atlasJsMessageHandler: InternalJsMessageHandler?) {
-        this.sdkAtlasJsMessageHandler = atlasJsMessageHandler
+    private var sdkAtlasMessageHandler: InternalMessageHandler? = null
+    @Keep
+    private fun setSdkAtlasMessageHandler(atlasMessageHandler: InternalMessageHandler?) {
+        this.sdkAtlasMessageHandler = atlasMessageHandler
     }
 
-    private var atlasJsMessageHandler: AtlasJsMessageHandler? = null
-    fun setAtlasJsMessageHandler(atlasJsMessageHandler: AtlasJsMessageHandler?) {
-        this.atlasJsMessageHandler = atlasJsMessageHandler
+    private var atlasMessageHandler: AtlasMessageHandler? = null
+    fun setAtlasMessageHandler(atlasMessageHandler: AtlasMessageHandler?) {
+        this.atlasMessageHandler = atlasMessageHandler
     }
 
-    fun removeAtlasJsMessageHandler() {
-        this.atlasJsMessageHandler = null
+    fun removeAtlasMessageHandler() {
+        this.atlasMessageHandler = null
     }
 
     private val gson = Gson()
-    private val atlasWebViewAppInterface = object : AtlasWebViewAppInterface {
+    private val atlasAppInterface = object : AtlasAppInterface {
 
         @JavascriptInterface
         override fun postMessage(message: String) {
             try {
-                val webViewJsMessage = gson.fromJson(message, WebViewJsMessage::class.java)
-                when (webViewJsMessage.type) {
+                val atlasEndpointCallbackMessage = gson.fromJson(message, AtlasEndpointCallbackMessage::class.java)
+                when (atlasEndpointCallbackMessage.type) {
                     Config.MESSAGE_TYPE_ERROR -> {
-                        sdkAtlasJsMessageHandler?.onError(webViewJsMessage.errorMessage)
-                        atlasJsMessageHandler?.onError(webViewJsMessage.errorMessage)
+                        sdkAtlasMessageHandler?.onError(atlasEndpointCallbackMessage.errorMessage)
+                        atlasMessageHandler?.onError(atlasEndpointCallbackMessage.errorMessage)
                     }
 
                     Config.MESSAGE_TYPE_NEW_TICKET -> {
-                        sdkAtlasJsMessageHandler?.onNewTicket(webViewJsMessage.ticketId)
-                        atlasJsMessageHandler?.onNewTicket(webViewJsMessage.ticketId)
+                        sdkAtlasMessageHandler?.onNewTicket(atlasEndpointCallbackMessage.ticketId)
+                        atlasMessageHandler?.onNewTicket(atlasEndpointCallbackMessage.ticketId)
                     }
 
                     Config.MESSAGE_TYPE_CHANGE_IDENTITY -> {
-                        sdkAtlasJsMessageHandler?.onChangeIdentity(
-                            webViewJsMessage.atlasId,
-                            webViewJsMessage.userId,
-                            webViewJsMessage.userHash
+                        sdkAtlasMessageHandler?.onChangeIdentity(
+                            atlasEndpointCallbackMessage.atlasId,
+                            atlasEndpointCallbackMessage.userId,
+                            atlasEndpointCallbackMessage.userHash
                         )
-                        atlasJsMessageHandler?.onChangeIdentity(
-                            webViewJsMessage.atlasId,
-                            webViewJsMessage.userId,
-                            webViewJsMessage.userHash
+                        atlasMessageHandler?.onChangeIdentity(
+                            atlasEndpointCallbackMessage.atlasId,
+                            atlasEndpointCallbackMessage.userId,
+                            atlasEndpointCallbackMessage.userHash
                         )
                     }
 
-                    else -> sdkAtlasJsMessageHandler?.onError(message)
+                    else -> sdkAtlasMessageHandler?.onError(message)
                 }
             } catch (e: Exception) {
-                sdkAtlasJsMessageHandler?.onError("js message: $message, exception: ${e.message}")
-                atlasJsMessageHandler?.onError("js message: $message, exception: ${e.message}")
+                sdkAtlasMessageHandler?.onError("message: $message, exception: ${e.message}")
+                atlasMessageHandler?.onError("message: $message, exception: ${e.message}")
             }
         }
     }
@@ -103,7 +103,7 @@ class AtlasWebView : WebView {
             databaseEnabled = true
             domStorageEnabled = true
         }
-        addJavascriptInterface(atlasWebViewAppInterface, "FlutterWebView")
+        addJavascriptInterface(atlasAppInterface, "FlutterWebView")
     }
 
     constructor(context: Context) : super(context)
@@ -185,16 +185,26 @@ class AtlasWebView : WebView {
         }
         receiver = null
 
-        removeAtlasJsMessageHandler()
+        removeAtlasMessageHandler()
         loadUrl("file://")
         removeJavascriptInterface("FlutterWebView")
     }
 
     @Keep
-    interface AtlasWebViewAppInterface {
+    interface AtlasAppInterface {
 
         @JavascriptInterface
         fun postMessage(message: String)
 
     }
+
+    @Keep
+    private data class AtlasEndpointCallbackMessage(
+        val type: String,
+        val errorMessage: String?,
+        val ticketId: String?,
+        val atlasId: String?,
+        val userId: String?,
+        val userHash: String?
+    )
 }

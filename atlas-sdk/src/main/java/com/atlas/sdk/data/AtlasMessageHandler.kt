@@ -1,9 +1,8 @@
 package com.atlas.sdk.data
 
 import androidx.annotation.Keep
-import androidx.lifecycle.Lifecycle
 
-interface InternalJsMessageHandler {
+interface InternalMessageHandler {
     fun onError(message: String?)
 
     fun onNewTicket(ticketId: String?)
@@ -12,4 +11,4 @@ interface InternalJsMessageHandler {
 }
 
 @Keep
-abstract class AtlasJsMessageHandler(val lifecycle: Lifecycle) : InternalJsMessageHandler
+abstract class AtlasMessageHandler : InternalMessageHandler

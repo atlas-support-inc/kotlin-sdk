@@ -3,7 +3,7 @@ package com.atlas.sdk
 import android.app.Application
 import android.content.Context
 import android.content.Intent
-import android.util.Log
+//import android.util.Log
 import androidx.annotation.Keep
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -13,16 +13,16 @@ import androidx.lifecycle.MutableLiveData
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.atlas.sdk.core.WebSocketConnectionListener
 import com.atlas.sdk.core.WebSocketMessageParser
-import com.atlas.sdk.data.AtlasJsMessageHandler
+import com.atlas.sdk.data.AtlasMessageHandler
 import com.atlas.sdk.data.AtlasStats
 import com.atlas.sdk.data.AtlasUser
 import com.atlas.sdk.data.Conversation
 import com.atlas.sdk.data.ConversationStats
-import com.atlas.sdk.data.InternalJsMessageHandler
+import com.atlas.sdk.data.InternalMessageHandler
 import com.atlas.sdk.repository.ConversationsRemoteRepository
 import com.atlas.sdk.repository.UserLocalRepository
 import com.atlas.sdk.repository.UserRemoteRepository
-import com.atlas.sdk.view.AtlasWebView
+import com.atlas.sdk.view.AtlasView
 import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
 import kotlinx.coroutines.Dispatchers
@@ -45,28 +45,28 @@ object AtlasSdk {
     private var atlasUser: AtlasUser? = null
     val atlasUserLive: LiveData<AtlasUser?> = MutableLiveData()
 
-    private val internalAtlasJsMessageHandler = object : InternalJsMessageHandler {
+    private val internalAtlasMessageHandler = object : InternalMessageHandler {
         override fun onError(message: String?) {
-            Log.d(TAG, "onError:$message")
-            atlasJsMessageHandlers.forEach {
+//            Log.d(TAG, "onError:$message")
+            atlasMessageHandlers.forEach {
                 it.onError(message)
             }
         }
 
         override fun onNewTicket(ticketId: String?) {
-            Log.d(TAG, "onNewTicket:$ticketId")
+//            Log.d(TAG, "onNewTicket:$ticketId")
             ticketId?.let {
                 GlobalScope.launch {
                     updateCustomFields(ticketId, mapOf("newTicketIsHere" to ticketId))
                 }
             }
-            atlasJsMessageHandlers.forEach {
+            atlasMessageHandlers.forEach {
                 it.onNewTicket(ticketId)
             }
         }
 
         override fun onChangeIdentity(atlasId: String?, userId: String?, userHash: String?) {
-            Log.d(TAG, "onChangeIdentity:$atlasId $userId $userHash")
+//            Log.d(TAG, "onChangeIdentity:$atlasId $userId $userHash")
             val user = if (atlasUser == null)
                 AtlasUser(userId ?: "", userHash ?: "", atlasId)
             else
@@ -78,17 +78,17 @@ object AtlasSdk {
         }
     }
 
-    private val atlasJsMessageHandlers = arrayListOf<AtlasJsMessageHandler>()
-    fun addAtlasJsMessageHandler(atlasJsMessageHandler: AtlasJsMessageHandler) {
-        atlasJsMessageHandlers.add(atlasJsMessageHandler)
+    private val atlasMessageHandlers = arrayListOf<AtlasMessageHandler>()
+    fun addAtlasMessageHandler(atlasMessageHandler: AtlasMessageHandler) {
+        atlasMessageHandlers.add(atlasMessageHandler)
     }
 
-    fun removeAtlasJsMessageHandler(atlasJsMessageHandler: AtlasJsMessageHandler) {
-        atlasJsMessageHandlers.remove(atlasJsMessageHandler)
+    fun removeAtlasMessageHandler(atlasMessageHandler: AtlasMessageHandler) {
+        atlasMessageHandlers.remove(atlasMessageHandler)
     }
 
-    fun clearAtlasJsMessageHandlers() {
-        atlasJsMessageHandlers.clear()
+    fun clearAtlasMessageHandlers() {
+        atlasMessageHandlers.clear()
     }
 
     private var webSocketConnectionListener: WebSocketConnectionListener? = null
@@ -143,7 +143,7 @@ object AtlasSdk {
                     putExtra(AtlasUser::class.java.simpleName, atlasUser)
                 })
 
-                atlasJsMessageHandlers.forEach {
+                atlasMessageHandlers.forEach {
                     it.onChangeIdentity(atlasUser?.atlasId, atlasUser?.id, atlasUser?.hash)
                 }
 
@@ -155,9 +155,11 @@ object AtlasSdk {
         }
     }
 
-    fun bindAtlasWebView(atlasWebView: AtlasWebView) {
-        atlasWebView.setSdkAtlasJsMessageHandler(internalAtlasJsMessageHandler)
-        atlasWebView.applyConfig(appId, atlasUser)
+    fun bindAtlasView(atlasView: AtlasView) {
+        val sdkAtlasMessageHandler = AtlasView::class.java.getDeclaredMethod("setSdkAtlasMessageHandler", InternalMessageHandler::class.java)
+        sdkAtlasMessageHandler.isAccessible = true
+        sdkAtlasMessageHandler.invoke(atlasView, internalAtlasMessageHandler)
+        atlasView.applyConfig(appId, atlasUser)
     }
 
     suspend fun watchStats() {
@@ -180,7 +182,7 @@ object AtlasSdk {
                             webSocketMessageHandler =
                                 object : WebSocketConnectionListener.WebSocketMessageHandler {
                                     override fun onNewMessage(webSocketMessage: WebSocketMessageParser.WebSocketMessage?) {
-                                        Log.d(TAG, "$webSocketMessage")
+//                                        Log.d(TAG, "$webSocketMessage")
 
                                         // we send updates only if there have been changes
                                         if (processWebSocketMessage(webSocketMessage)) {

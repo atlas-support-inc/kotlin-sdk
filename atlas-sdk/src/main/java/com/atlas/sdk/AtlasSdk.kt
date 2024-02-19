@@ -47,26 +47,26 @@ object AtlasSdk {
 
     private val internalAtlasMessageHandler = object : InternalMessageHandler {
         override fun onError(message: String?) {
-//            Log.d(TAG, "onError:$message")
+            // Log.d(TAG, "onError:$message")
             atlasMessageHandlers.forEach {
                 it.onError(message)
             }
         }
 
         override fun onNewTicket(ticketId: String?) {
-//            Log.d(TAG, "onNewTicket:$ticketId")
-            ticketId?.let {
-                GlobalScope.launch {
-                    updateCustomFields(ticketId, mapOf("newTicketIsHere" to ticketId))
-                }
-            }
+            // Log.d(TAG, "onNewTicket:$ticketId")
+            // ticketId?.let {
+            //     GlobalScope.launch {
+            //         updateCustomFields(ticketId, mapOf("newTicketIsHere" to ticketId))
+            //     }
+            // }
             atlasMessageHandlers.forEach {
                 it.onNewTicket(ticketId)
             }
         }
 
         override fun onChangeIdentity(atlasId: String?, userId: String?, userHash: String?) {
-//            Log.d(TAG, "onChangeIdentity:$atlasId $userId $userHash")
+            // Log.d(TAG, "onChangeIdentity:$atlasId $userId $userHash")
             val user = if (atlasUser == null)
                 AtlasUser(userId ?: "", userHash ?: "", atlasId)
             else
@@ -105,7 +105,6 @@ object AtlasSdk {
     }
 
     fun init(context: Application, appId: String) {
-
         this.localBroadcastManager = LocalBroadcastManager.getInstance(context)
 
         this.appId = appId
@@ -182,7 +181,7 @@ object AtlasSdk {
                             webSocketMessageHandler =
                                 object : WebSocketConnectionListener.WebSocketMessageHandler {
                                     override fun onNewMessage(webSocketMessage: WebSocketMessageParser.WebSocketMessage?) {
-//                                        Log.d(TAG, "$webSocketMessage")
+                                        // Log.d(TAG, "$webSocketMessage")
 
                                         // we send updates only if there have been changes
                                         if (processWebSocketMessage(webSocketMessage)) {

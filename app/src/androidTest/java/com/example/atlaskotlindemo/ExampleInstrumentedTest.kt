@@ -1,4 +1,4 @@
-package com.atlas.sdk
+package com.example.atlaskotlindemo
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.atlas", appContext.packageName)
+        assertEquals("com.example.atlaskotlindemo", appContext.packageName)
     }
 }

@@ -1,4 +1,4 @@
-package com.atlas.sdk
+package com.example.atlaskotlindemo
 
 import org.junit.Test
 

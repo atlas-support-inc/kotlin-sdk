@@ -1,3 +1,3 @@
 #!/bin/bash
 
- ./gradlew build -Produle=atlas-sdk
+./gradlew build -Produle=atlas-sdk

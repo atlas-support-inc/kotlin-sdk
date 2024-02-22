@@ -37,6 +37,20 @@ class YourApplication : Application() {
 
 Retrieve your **APP_ID** from the [Organization Settings page](https://app.atlas.so/settings/company) in the Atlas application.
 
+## Identification
+
+To bind Atlas tickets to your user, confidently execute the identify method by inputting the user ID as the primary argument and the user hash if authentication is activated on the Installation Config page at https://app.atlas.so/configuration/installation. Alternatively, use an empty string if authentication is not enabled.
+
+```kt
+atlasSdk.identify(AtlasUser("USER_ID", ""))
+```
+
+For logging out the user, simply call the identify method with a null value:
+
+```kt
+atlasSdk.identify(null)
+```
+
 ## Atlas UI
 
 To display the Atlas UI, integrate it into your layout and bind the view to the SDK:

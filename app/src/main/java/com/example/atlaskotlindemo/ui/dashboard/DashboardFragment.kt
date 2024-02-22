@@ -1,6 +1,7 @@
 package com.example.atlaskotlindemo.ui.dashboard
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +11,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.atlas.sdk.data.AtlasUser
 import com.example.atlaskotlindemo.AtlasDemoApplication
 import com.example.atlaskotlindemo.databinding.FragmentDashboardBinding
 import kotlinx.coroutines.launch
@@ -51,6 +53,31 @@ class DashboardFragment : Fragment() {
                 "You have $count unread messages"
             }
         })
+
+        val user = (requireActivity().application as AtlasDemoApplication).atlasSdk.getUser()
+        if (user != null && user.id.isNotEmpty()) {
+            binding.loginField.setText(user.id)
+        }
+
+        binding.loginButton.setOnClickListener {
+            viewLifecycleOwner.lifecycleScope.launch {
+                val id = binding.loginField.text.toString()
+                if (id.isEmpty()) {
+                    return@launch
+                }
+
+                val newUser = AtlasUser(id, "")
+                (requireActivity().application as AtlasDemoApplication).atlasSdk.identify(newUser)
+                Log.d("Atlas", "Logged in as $id")
+            }
+        }
+
+        binding.logoutButton.setOnClickListener {
+            viewLifecycleOwner.lifecycleScope.launch {
+                (requireActivity().application as AtlasDemoApplication).atlasSdk.identify(null)
+            }
+        }
+        
 
 //        val saveButton: Button = binding.saveButton
 //        saveButton.setOnClickListener { view ->

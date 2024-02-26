@@ -3,11 +3,11 @@ package com.atlas.sdk
 import android.app.Application
 import android.content.Context
 import android.content.Intent
-//import android.util.Log
 import androidx.annotation.Keep
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -123,6 +123,10 @@ object AtlasSdk {
         coroutineScope {
             if (user == null || user.isEmpty) {
                 atlasUser = null
+                localBroadcastManager?.sendBroadcast(Intent().apply {
+                    action = ON_CHANGE_IDENTITY_ACTION
+                    putExtra(AtlasUser::class.java.simpleName, atlasUser)
+                })
                 withContext(Dispatchers.IO) {
                     userLocalRepository.storeIdentity(AtlasUser.EMPTY_USER)
                 }
@@ -154,10 +158,15 @@ object AtlasSdk {
         }
     }
 
-    fun bindAtlasView(atlasView: AtlasView) {
+    fun bindAtlasView(lifecycle: Lifecycle, atlasView: AtlasView) {
         val sdkAtlasMessageHandler = AtlasView::class.java.getDeclaredMethod("setSdkAtlasMessageHandler", InternalMessageHandler::class.java)
         sdkAtlasMessageHandler.isAccessible = true
         sdkAtlasMessageHandler.invoke(atlasView, internalAtlasMessageHandler)
+
+        val bindToLifeCycleMethod = AtlasView::class.java.getDeclaredMethod("bindToLifeCycle", Lifecycle::class.java)
+        bindToLifeCycleMethod.isAccessible = true
+        bindToLifeCycleMethod.invoke(atlasView, lifecycle)
+
         atlasView.applyConfig(appId, atlasUser)
     }
 
@@ -337,7 +346,7 @@ object AtlasSdk {
         return null
     }
 
-    private suspend fun updateCustomFields(ticketId: String, data: Map<String, Any>) {
+    suspend fun updateCustomFields(ticketId: String, data: Map<String, Any>) {
         atlasUser?.let {
             userRemoteRepository.updateCustomFields(it, ticketId, data)
         }

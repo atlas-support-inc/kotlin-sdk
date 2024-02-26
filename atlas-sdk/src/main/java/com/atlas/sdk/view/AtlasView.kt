@@ -1,18 +1,30 @@
 package com.atlas.sdk.view
 
 import android.annotation.SuppressLint
+import android.app.Activity.RESULT_OK
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
+import android.provider.MediaStore
 import android.util.AttributeSet
+import android.util.Log
 import android.webkit.JavascriptInterface
+import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.ActivityResultRegistry
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.Keep
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.atlas.sdk.AtlasSdk
 import com.atlas.sdk.core.Config
@@ -24,6 +36,11 @@ import com.google.gson.Gson
 @Keep
 @SuppressLint("SetJavaScriptEnabled")
 class AtlasView : WebView {
+
+    private lateinit var filePickerLifeCycleObserver: FilePickerLifeCycleObserver
+    private fun bindToLifeCycle(lifecycle: Lifecycle) {
+        lifecycle.addObserver(filePickerLifeCycleObserver)
+    }
 
     private var intentFilter = IntentFilter().apply {
         addAction(AtlasSdk.ON_CHANGE_IDENTITY_ACTION)
@@ -41,6 +58,7 @@ class AtlasView : WebView {
     }
 
     private var sdkAtlasMessageHandler: InternalMessageHandler? = null
+
     @Keep
     private fun setSdkAtlasMessageHandler(atlasMessageHandler: InternalMessageHandler?) {
         this.sdkAtlasMessageHandler = atlasMessageHandler
@@ -97,13 +115,30 @@ class AtlasView : WebView {
 
     init {
         webViewClient = WebViewClient()
-        webChromeClient = WebChromeClient()
+        webChromeClient = object : WebChromeClient() {
+            override fun onShowFileChooser(
+                webView: WebView?,
+                filePathCallback: ValueCallback<Array<Uri>>?,
+                fileChooserParams: FileChooserParams?
+            ): Boolean {
+
+                if (::filePickerLifeCycleObserver.isInitialized) {
+                    filePickerLifeCycleObserver.pickFile(filePathCallback)
+                }
+
+                return true
+            }
+        }
         with(settings) {
             javaScriptEnabled = true
             databaseEnabled = true
             domStorageEnabled = true
         }
         addJavascriptInterface(atlasAppInterface, "FlutterWebView")
+
+        (context as? FragmentActivity)?.activityResultRegistry?.let { registry ->
+            filePickerLifeCycleObserver = FilePickerLifeCycleObserver(registry)
+        }
     }
 
     constructor(context: Context) : super(context)
@@ -207,4 +242,56 @@ class AtlasView : WebView {
         val userId: String?,
         val userHash: String?
     )
+
+    private class FilePickerLifeCycleObserver(private val registry: ActivityResultRegistry) : DefaultLifecycleObserver {
+        lateinit var getContent: ActivityResultLauncher<Intent>
+        private var uploadFileCallback: ValueCallback<Array<Uri>>? = null
+
+        override fun onCreate(owner: LifecycleOwner) {
+            getContent = registry.register(
+                "AtlasView",
+                owner,
+                ActivityResultContracts.StartActivityForResult()
+            ) { result: ActivityResult ->
+                if (null == uploadFileCallback || result.resultCode != RESULT_OK || result.data == null) {
+                    uploadFileCallback?.onReceiveValue(null)
+                    uploadFileCallback = null
+                    return@register
+                }
+
+                // Handle the case where the user captures a photo or video or selects one from the gallery.
+                val result =
+                    if (result.data?.data != null) arrayOf(result.data?.data!!) else WebChromeClient.FileChooserParams.parseResult(
+                        result.resultCode,
+                        result.data
+                    )
+                uploadFileCallback?.onReceiveValue(result)
+                uploadFileCallback = null
+            }
+        }
+
+        fun pickFile(filePathCallback: ValueCallback<Array<Uri>>?) {
+            this.uploadFileCallback = filePathCallback
+            val contentSelectionIntent = Intent(Intent.ACTION_GET_CONTENT)
+            contentSelectionIntent.addCategory(Intent.CATEGORY_OPENABLE)
+            contentSelectionIntent.type = "*/*"
+            contentSelectionIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+
+            // Create an Intent for capturing images.
+            val capturePhotoIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+
+            // Create an Intent for capturing video.
+            val captureVideoIntent = Intent(MediaStore.ACTION_VIDEO_CAPTURE)
+
+            val intentList: MutableList<Intent> = ArrayList()
+            intentList.add(capturePhotoIntent)
+            intentList.add(captureVideoIntent)
+
+            val chooserIntent = Intent(Intent.ACTION_CHOOSER)
+            chooserIntent.putExtra(Intent.EXTRA_INTENT, contentSelectionIntent)
+            chooserIntent.putExtra(Intent.EXTRA_TITLE, "Choose an action")
+            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentList.toTypedArray())
+            getContent.launch(chooserIntent)
+        }
+    }
 }

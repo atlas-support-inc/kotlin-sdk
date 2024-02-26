@@ -324,7 +324,7 @@ object AtlasSdk {
 
     private suspend fun login(user: AtlasUser?): AtlasUser? {
         user?.let { _atlasUser ->
-            if (_atlasUser.id.isNotEmpty() && _atlasUser.hash.isNotEmpty() && _atlasUser.atlasId.isNullOrEmpty()) {
+            if (_atlasUser.id.isNotEmpty() && _atlasUser.atlasId.isNullOrEmpty()) {
                 val response = userRemoteRepository.login(appId, _atlasUser)
                 if (response != null && response.isSuccessful) {
                     // we may have OR may not have atlasId in the beginning

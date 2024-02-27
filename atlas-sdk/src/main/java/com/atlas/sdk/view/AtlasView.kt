@@ -10,7 +10,6 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.util.AttributeSet
-import android.util.Log
 import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
@@ -21,6 +20,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.ActivityResultRegistry
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.Keep
+import androidx.core.content.FileProvider
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
@@ -32,6 +32,7 @@ import com.atlas.sdk.data.AtlasMessageHandler
 import com.atlas.sdk.data.AtlasUser
 import com.atlas.sdk.data.InternalMessageHandler
 import com.google.gson.Gson
+import java.io.File
 
 @Keep
 @SuppressLint("SetJavaScriptEnabled")
@@ -123,7 +124,7 @@ class AtlasView : WebView {
             ): Boolean {
 
                 if (::filePickerLifeCycleObserver.isInitialized) {
-                    filePickerLifeCycleObserver.pickFile(filePathCallback)
+                    filePickerLifeCycleObserver.pickFile(context.applicationContext, filePathCallback)
                 }
 
                 return true
@@ -244,6 +245,7 @@ class AtlasView : WebView {
     )
 
     private class FilePickerLifeCycleObserver(private val registry: ActivityResultRegistry) : DefaultLifecycleObserver {
+        private var photoCaptureUri: Uri? = null
         lateinit var getContent: ActivityResultLauncher<Intent>
         private var uploadFileCallback: ValueCallback<Array<Uri>>? = null
 
@@ -260,17 +262,21 @@ class AtlasView : WebView {
                 }
 
                 // Handle the case where the user captures a photo or video or selects one from the gallery.
-                val result =
-                    if (result.data?.data != null) arrayOf(result.data?.data!!) else WebChromeClient.FileChooserParams.parseResult(
-                        result.resultCode,
-                        result.data
-                    )
+                var result =
+                    if (result.data?.data != null)
+                        arrayOf(result.data?.data!!)
+                    else
+                        WebChromeClient.FileChooserParams.parseResult(
+                            result.resultCode,
+                            result.data
+                        )
+                result = if (result.isNullOrEmpty()) arrayOf(photoCaptureUri) else result
                 uploadFileCallback?.onReceiveValue(result)
                 uploadFileCallback = null
             }
         }
 
-        fun pickFile(filePathCallback: ValueCallback<Array<Uri>>?) {
+        fun pickFile(context: Context, filePathCallback: ValueCallback<Array<Uri>>?) {
             this.uploadFileCallback = filePathCallback
             val contentSelectionIntent = Intent(Intent.ACTION_GET_CONTENT)
             contentSelectionIntent.addCategory(Intent.CATEGORY_OPENABLE)
@@ -278,10 +284,25 @@ class AtlasView : WebView {
             contentSelectionIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
 
             // Create an Intent for capturing images.
+            val storageDir: File? = context.externalCacheDir?.absoluteFile
+            val file = File.createTempFile(
+                PHOTO_FILE_NAME_PREFIX,
+                ".jpg",
+                storageDir
+            )
+
+            photoCaptureUri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                file
+            )
             val capturePhotoIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+            capturePhotoIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+            capturePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoCaptureUri)
 
             // Create an Intent for capturing video.
             val captureVideoIntent = Intent(MediaStore.ACTION_VIDEO_CAPTURE)
+            captureVideoIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
 
             val intentList: MutableList<Intent> = ArrayList()
             intentList.add(capturePhotoIntent)
@@ -292,6 +313,10 @@ class AtlasView : WebView {
             chooserIntent.putExtra(Intent.EXTRA_TITLE, "Choose an action")
             chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentList.toTypedArray())
             getContent.launch(chooserIntent)
+        }
+
+        companion object {
+            const val PHOTO_FILE_NAME_PREFIX = "atlas_photo_capture_"
         }
     }
 }

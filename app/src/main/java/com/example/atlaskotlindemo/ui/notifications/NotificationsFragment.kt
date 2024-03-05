@@ -54,6 +54,7 @@ class NotificationsFragment : Fragment() {
                 override fun onNewTicket(ticketId: String?) {
                     if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
                         Log.d("AtlasView", "onNewTicket: $ticketId")
+                        // (requireActivity().application as AtlasDemoApplication).atlasSdk.updateCustomFields(ticketId, mapOf("customField" to "customValue")
                     }
                 }
 

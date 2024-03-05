@@ -5,13 +5,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.atlas.sdk.data.AtlasUser
 import com.example.atlaskotlindemo.AtlasDemoApplication
 import com.example.atlaskotlindemo.databinding.FragmentDashboardBinding
 import kotlinx.coroutines.launch
@@ -66,15 +63,15 @@ class DashboardFragment : Fragment() {
                     return@launch
                 }
 
-                val newUser = AtlasUser(id, "")
-                (requireActivity().application as AtlasDemoApplication).atlasSdk.identify(newUser)
+                (requireActivity().application as AtlasDemoApplication).atlasSdk.identify(userId = id)
                 Log.d("Atlas", "Logged in as $id")
             }
         }
 
         binding.logoutButton.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
-                (requireActivity().application as AtlasDemoApplication).atlasSdk.identify(null)
+                (requireActivity().application as AtlasDemoApplication).atlasSdk.identify()
+                binding.loginField.text.clear()
             }
         }
         

@@ -73,7 +73,7 @@ object AtlasSdk {
                 atlasUser!!.apply { this.atlasId = atlasId }
 
             GlobalScope.launch {
-                identify(user)
+                restore(user)
             }
         }
     }
@@ -112,14 +112,15 @@ object AtlasSdk {
 
         GlobalScope.launch {
             userLocalRepository.loadStoredIdentity()?.let {
-                identify(it)
+                restore(it)
             }
         }
     }
 
     fun getUser(): AtlasUser? = atlasUser
 
-    suspend fun identify(user: AtlasUser?) {
+
+    private suspend fun restore(user: AtlasUser? = null) {
         coroutineScope {
             if (user == null || user.isEmpty) {
                 atlasUser = null
@@ -155,6 +156,13 @@ object AtlasSdk {
                 }
                 watchStats()
             }
+        }
+    }
+
+    suspend fun identify(userId: String? = null, userHash: String? = null, userName: String? = null, userEmail: String? = null) {
+        coroutineScope {
+            var user = AtlasUser(userId ?: "", userHash ?: "", null, userName, userEmail)
+            restore(user)
         }
     }
 

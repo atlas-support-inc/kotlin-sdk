@@ -2,7 +2,7 @@
 
 ## Installation
 
-To utilize Atlas Kotlin SDK, copy **atlas-sdk-aar** (or download it from [https://github.com/atlas-support-inc/kotlin-sdk/raw/main/atlas-kotlin-sdk.zip](https://github.com/atlas-support-inc/kotlin-sdk/raw/main/atlas-kotlin-sdk.zip)) into your project and adjust your settings accordingly:
+To utilize Atlas Kotlin SDK, copy **atlas-sdk-aar** (or download it from [https://github.com/atlas-support-inc/kotlin-sdk/raw/main/atlas-kotlin-sdk.zip](https://github.com/atlas-support-inc/kotlin-sdk/raw/main/atlas-kotlin-sdk.zip) into your project and adjust your settings accordingly:
 
 ```kts
 // build.gradle.kts

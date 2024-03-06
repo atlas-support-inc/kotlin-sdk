@@ -2,7 +2,7 @@
 
 ## Installation
 
-To utilize Atlas Kotlin SDK, simply copy **atlas-sdk-aar** into your project and adjust your settings accordingly:
+To utilize Atlas Kotlin SDK, copy **atlas-sdk-aar** (or download it from [https://github.com/atlas-support-inc/kotlin-sdk/raw/main/atlas-kotlin-sdk.zip](https://github.com/atlas-support-inc/kotlin-sdk/raw/main/atlas-kotlin-sdk.zip)) into your project and adjust your settings accordingly:
 
 ```kts
 // build.gradle.kts
@@ -42,7 +42,7 @@ Retrieve your **APP_ID** from the [Organization Settings page](https://app.atlas
 To bind Atlas tickets to your user, confidently execute the identify method by inputting the user ID as the primary argument and the user hash if authentication is activated on the Installation Config page at https://app.atlas.so/configuration/installation. Alternatively, use an empty string if authentication is not enabled.
 
 ```kt
-atlasSdk.identify(userId = "", userHash = "...", userName = "...", userEmail = "...")
+atlasSdk.identify(userId = "...", userHash = "...", userName = "...", userEmail = "...")
 ```
 
 For logging out the user, simply call the identify method with a null value:

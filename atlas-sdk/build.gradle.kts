@@ -51,8 +51,6 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.google.code.gson:gson:2.10.1")
 
-    implementation("androidx.compose.ui:ui-android:1.7.5")
-    implementation("androidx.compose.material:material:1.7.5")
     implementation("androidx.constraintlayout:constraintlayout:2.2.0")
 
     testImplementation("junit:junit:4.13.2")

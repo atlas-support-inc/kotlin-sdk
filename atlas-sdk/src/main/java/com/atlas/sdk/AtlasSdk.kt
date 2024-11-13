@@ -7,7 +7,6 @@ import androidx.annotation.Keep
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -22,15 +21,18 @@ import com.atlas.sdk.data.InternalMessageHandler
 import com.atlas.sdk.repository.ConversationsRemoteRepository
 import com.atlas.sdk.repository.UserLocalRepository
 import com.atlas.sdk.repository.UserRemoteRepository
-import com.atlas.sdk.view.AtlasView
 import com.atlas.sdk.view.AtlasViewFragment
 import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.CompletableFuture
+
 
 @Keep
 object AtlasSdk {
@@ -46,7 +48,6 @@ object AtlasSdk {
     private var atlasUser: AtlasUser? = null
     private val atlasViewFragment: AtlasViewFragment? = null
     val atlasUserLive: LiveData<AtlasUser?> = MutableLiveData()
-
 
     internal val internalAtlasMessageHandler = object : InternalMessageHandler {
         override fun onError(message: String?) {
@@ -81,7 +82,7 @@ object AtlasSdk {
         }
     }
 
-    private val atlasMessageHandlers = arrayListOf<AtlasMessageHandler>()
+    internal val atlasMessageHandlers = arrayListOf<AtlasMessageHandler>()
     fun addAtlasMessageHandler(atlasMessageHandler: AtlasMessageHandler) {
         atlasMessageHandlers.add(atlasMessageHandler)
     }
@@ -122,22 +123,23 @@ object AtlasSdk {
 
     fun getUser(): AtlasUser? = atlasUser
 
-    private suspend fun restore(user: AtlasUser? = null) {
-        coroutineScope {
+    private fun restore(user: AtlasUser? = null): CompletableFuture<Void> {
+        return CompletableFuture.runAsync {
+
             if (user == null || user.isEmpty) {
                 atlasUser = null
                 localBroadcastManager?.sendBroadcast(Intent().apply {
                     action = ON_CHANGE_IDENTITY_ACTION
                     putExtra(AtlasUser::class.java.simpleName, atlasUser)
                 })
-                withContext(Dispatchers.IO) {
-                    userLocalRepository.storeIdentity(AtlasUser.EMPTY_USER)
-                }
+
+                userLocalRepository.storeIdentity(AtlasUser.EMPTY_USER)
                 unWatchStats()
-                return@coroutineScope
+
+                return@runAsync
             }
 
-            val loggedInUser = login(user)
+            val loggedInUser = login(user).get()
             val isItNewUser =
                 atlasUser?.atlasId.isNullOrEmpty() || loggedInUser?.atlasId != atlasUser?.atlasId
             if (isItNewUser && loggedInUser?.atlasId.isNullOrEmpty().not()) {
@@ -153,17 +155,22 @@ object AtlasSdk {
                     it.onChangeIdentity(atlasUser?.atlasId, atlasUser?.id, atlasUser?.hash)
                 }
 
-                withContext(Dispatchers.IO) {
-                    userLocalRepository.storeIdentity(atlasUser!!)
-                }
+                userLocalRepository.storeIdentity(atlasUser!!)
+
                 watchStats()
             }
         }
     }
 
-    suspend fun identify(userId: String? = null, userHash: String? = null, userName: String? = null, userEmail: String? = null) {
-        coroutineScope {
-            var user = AtlasUser(userId ?: "", userHash ?: "", null, userName, userEmail)
+    fun identify(userId: String? = null, userHash: String? = null, userName: String? = null, userEmail: String? = null): CompletableFuture<Void> {
+        return CompletableFuture.runAsync {
+            val user = AtlasUser(
+                userId ?: "",
+                userHash ?: "",
+                null,
+                userName,
+                userEmail
+            )
             restore(user)
         }
     }
@@ -180,10 +187,10 @@ object AtlasSdk {
         return atlasViewFragment
     }
 
-    suspend fun watchStats() {
-        coroutineScope {
+    fun watchStats(): CompletableFuture<Void> {
+        return CompletableFuture.runAsync {
             atlasUser?.takeIf { it.atlasId.isNullOrEmpty().not() }?.let { user ->
-                fetchConversations(user)?.let { conversationStats ->
+                fetchConversations(user).get()?.let { conversationStats ->
                     atlasStats.conversations.clear()
                     atlasStats.conversations.addAll(conversationStats)
                     (atlasStatsLive as MutableLiveData).postValue(atlasStats)
@@ -221,13 +228,15 @@ object AtlasSdk {
         }
     }
 
-    fun unWatchStats() {
-        atlasStats.conversations.clear()
-        (atlasStatsLive as MutableLiveData).postValue(atlasStats)
+    private fun unWatchStats(): CompletableFuture<Void> {
+        return CompletableFuture.runAsync {
+            atlasStats.conversations.clear()
+            (atlasStatsLive as MutableLiveData).postValue(atlasStats)
 
-        atlasStatsUpdateWatcher?.onStatsUpdate(atlasStats)
+            atlasStatsUpdateWatcher?.onStatsUpdate(atlasStats)
 
-        webSocketConnectionListener?.close()
+            webSocketConnectionListener?.close()
+        }
     }
 
     private fun updateConversationStats(conversation: Conversation?) {
@@ -332,29 +341,34 @@ object AtlasSdk {
         return requireStatsUpdate
     }
 
-    private suspend fun login(user: AtlasUser?): AtlasUser? {
-        user?.let { _atlasUser ->
-            if (_atlasUser.id.isNotEmpty() && _atlasUser.atlasId.isNullOrEmpty()) {
-                val response = userRemoteRepository.login(appId, _atlasUser)
-                if (response != null && response.isSuccessful) {
-                    // we may have OR may not have atlasId in the beginning
-                    // but now we should have it in response
-                    return _atlasUser.copy(atlasId = response.id)
+    private fun login(user: AtlasUser?): CompletableFuture<AtlasUser?> {
+        return CompletableFuture.supplyAsync() {
+            user?.let { _atlasUser ->
+                if (_atlasUser.id.isNotEmpty() && _atlasUser.atlasId.isNullOrEmpty()) {
+                    val response = userRemoteRepository.login(appId, _atlasUser)
+                    if (response != null && response.get()?.isSuccessful == true) {
+                        // we may have OR may not have atlasId in the beginning
+                        // but now we should have it in response
+                        return@supplyAsync _atlasUser.copy(atlasId = response.get()?.id)
+                    }
+                } else {
+                    return@supplyAsync _atlasUser
                 }
-            } else {
-                return _atlasUser
             }
+            return@supplyAsync null
         }
-        return null
     }
 
-    private suspend fun fetchConversations(atlasUser: AtlasUser): List<ConversationStats>? {
-        val response = conversationsRemoteRepository.fetchConversations(atlasUser)
-        if (response != null && response.isSuccessful) {
-            return response.data?.map { ConversationStats.fromConversation(it) }
+    private fun fetchConversations(atlasUser: AtlasUser): CompletableFuture<List<ConversationStats>?> {
+        return CompletableFuture.supplyAsync {
+            val response = conversationsRemoteRepository.fetchConversations(atlasUser)
+            if (response.get() != null && response.get()?.isSuccessful == true) {
+                return@supplyAsync response.get()?.data?.map { ConversationStats.fromConversation(it) }
+            }
+            return@supplyAsync null
         }
-        return null
-    }
+        }
+
 
     suspend fun updateCustomFields(ticketId: String, data: Map<String, Any>) {
         atlasUser?.let {

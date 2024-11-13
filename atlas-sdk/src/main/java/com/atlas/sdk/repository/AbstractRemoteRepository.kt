@@ -7,15 +7,15 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import java.util.concurrent.CompletableFuture
 
 abstract class AbstractRemoteRepository(val gson: Gson) {
 
-    suspend inline fun <reified A : Any> executeWithResponse(request: Request): A? {
-        return coroutineScope {
-            withContext(Dispatchers.IO) {
+    inline fun <reified A : Any> executeWithResponse(request: Request): CompletableFuture<A?> {
+        return CompletableFuture.supplyAsync {
                 try {
                     val response = OkHttpClient().newCall(request).execute()
-                    return@withContext if (response.isSuccessful) {
+                    return@supplyAsync if (response.isSuccessful) {
                         gson.fromJson(
                             response.body?.string(),
                             A::class.java
@@ -23,11 +23,9 @@ abstract class AbstractRemoteRepository(val gson: Gson) {
                     } else {
                         null
                     }
-
                 } catch (e: Exception) {
-                    return@withContext null
+                    return@supplyAsync null
                 }
-            }
         }
     }
 

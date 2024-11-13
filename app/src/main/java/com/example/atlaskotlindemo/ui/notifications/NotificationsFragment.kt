@@ -18,6 +18,7 @@ import android.util.Log
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebView
+import com.example.atlaskotlindemo.R
 
 class NotificationsFragment : Fragment() {
 
@@ -41,6 +42,14 @@ class NotificationsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Step 1: Create AtlasViewFragment
+        val atlasSdk = (requireActivity().application as AtlasDemoApplication).atlasSdk
+        val atlasViewFragment = atlasSdk.getAtlasViewFragment()
+
+        // Step 2: Replace the current fragment with AtlasViewFragment in full screen
+        childFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, atlasViewFragment)
+            .commitNow()
     }
 
     override fun onDestroyView() {

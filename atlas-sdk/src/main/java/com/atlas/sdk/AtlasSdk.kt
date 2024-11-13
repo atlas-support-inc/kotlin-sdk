@@ -23,6 +23,7 @@ import com.atlas.sdk.repository.ConversationsRemoteRepository
 import com.atlas.sdk.repository.UserLocalRepository
 import com.atlas.sdk.repository.UserRemoteRepository
 import com.atlas.sdk.view.AtlasView
+import com.atlas.sdk.view.AtlasViewFragment
 import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
 import kotlinx.coroutines.Dispatchers
@@ -43,9 +44,11 @@ object AtlasSdk {
 
     private lateinit var appId: String
     private var atlasUser: AtlasUser? = null
+    private val atlasViewFragment: AtlasViewFragment? = null
     val atlasUserLive: LiveData<AtlasUser?> = MutableLiveData()
 
-    private val internalAtlasMessageHandler = object : InternalMessageHandler {
+
+    internal val internalAtlasMessageHandler = object : InternalMessageHandler {
         override fun onError(message: String?) {
             // Log.d(TAG, "onError:$message")
             atlasMessageHandlers.forEach {
@@ -119,7 +122,6 @@ object AtlasSdk {
 
     fun getUser(): AtlasUser? = atlasUser
 
-
     private suspend fun restore(user: AtlasUser? = null) {
         coroutineScope {
             if (user == null || user.isEmpty) {
@@ -164,6 +166,18 @@ object AtlasSdk {
             var user = AtlasUser(userId ?: "", userHash ?: "", null, userName, userEmail)
             restore(user)
         }
+    }
+
+    fun getAtlasViewFragment(): AtlasViewFragment {
+        if (atlasViewFragment == null) {
+            val atlasViewFragment = AtlasViewFragment()
+            atlasViewFragment.atlasSdk = this
+            atlasViewFragment.appId = appId
+            atlasViewFragment.user = atlasUser
+
+            return atlasViewFragment
+        }
+        return atlasViewFragment
     }
 
     suspend fun watchStats() {

@@ -43,11 +43,6 @@ internal class AtlasView : WebView {
         lifecycle.addObserver(filePickerLifeCycleObserver)
     }
 
-    private var intentFilter = IntentFilter().apply {
-        addAction(AtlasSdk.ON_CHANGE_IDENTITY_ACTION)
-    }
-    private var receiver: BroadcastReceiver? = null
-
     private var appId: String = ""
     fun setAppId(appId: String) {
         this.appId = appId
@@ -185,40 +180,11 @@ internal class AtlasView : WebView {
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
 
-        receiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                when (intent?.action) {
-                    AtlasSdk.ON_CHANGE_IDENTITY_ACTION -> {
-                        (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            intent.extras?.getParcelable(
-                                AtlasUser::class.java.simpleName,
-                                AtlasUser::class.java
-                            )
-                        } else {
-                            intent.extras?.getParcelable<AtlasUser>(AtlasUser::class.java.simpleName)
-                        })?.let { intentUser ->
-                            if (atlasUser?.atlasId != intentUser.atlasId) {
-                                setUser(intentUser)
-                                openPage()
-                            } else {
-                                setUser(intentUser)
-                            }
-                        }
 
-                    }
-                }
-            }
-        }
-        LocalBroadcastManager.getInstance(context).registerReceiver(receiver!!, intentFilter)
     }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
-
-        receiver?.let {
-            LocalBroadcastManager.getInstance(context).unregisterReceiver(it)
-        }
-        receiver = null
 
         removeAtlasMessageHandler()
         loadUrl("file://")

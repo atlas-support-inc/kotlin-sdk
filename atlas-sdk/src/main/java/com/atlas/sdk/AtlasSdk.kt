@@ -166,18 +166,6 @@ object AtlasSdk {
         }
     }
 
-    fun bindAtlasView(lifecycle: Lifecycle, atlasView: AtlasView) {
-        val sdkAtlasMessageHandler = AtlasView::class.java.getDeclaredMethod("setSdkAtlasMessageHandler", InternalMessageHandler::class.java)
-        sdkAtlasMessageHandler.isAccessible = true
-        sdkAtlasMessageHandler.invoke(atlasView, internalAtlasMessageHandler)
-
-        val bindToLifeCycleMethod = AtlasView::class.java.getDeclaredMethod("bindToLifeCycle", Lifecycle::class.java)
-        bindToLifeCycleMethod.isAccessible = true
-        bindToLifeCycleMethod.invoke(atlasView, lifecycle)
-
-        atlasView.applyConfig(appId, atlasUser)
-    }
-
     suspend fun watchStats() {
         coroutineScope {
             atlasUser?.takeIf { it.atlasId.isNullOrEmpty().not() }?.let { user ->

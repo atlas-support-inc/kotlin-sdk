@@ -36,10 +36,10 @@ import java.io.File
 
 @Keep
 @SuppressLint("SetJavaScriptEnabled")
-class AtlasView : WebView {
+internal class AtlasView : WebView {
 
     private lateinit var filePickerLifeCycleObserver: FilePickerLifeCycleObserver
-    private fun bindToLifeCycle(lifecycle: Lifecycle) {
+    fun bindToLifeCycle(lifecycle: Lifecycle) {
         lifecycle.addObserver(filePickerLifeCycleObserver)
     }
 
@@ -59,9 +59,8 @@ class AtlasView : WebView {
     }
 
     private var sdkAtlasMessageHandler: InternalMessageHandler? = null
-
     @Keep
-    private fun setSdkAtlasMessageHandler(atlasMessageHandler: InternalMessageHandler?) {
+    fun setSdkAtlasMessageHandler(atlasMessageHandler: InternalMessageHandler?) {
         this.sdkAtlasMessageHandler = atlasMessageHandler
     }
 
@@ -319,4 +318,5 @@ class AtlasView : WebView {
             const val PHOTO_FILE_NAME_PREFIX = "atlas_photo_capture_"
         }
     }
+
 }

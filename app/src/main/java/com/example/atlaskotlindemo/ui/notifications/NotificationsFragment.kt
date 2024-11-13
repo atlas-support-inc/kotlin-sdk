@@ -40,38 +40,7 @@ class NotificationsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        (requireActivity().application as AtlasDemoApplication).atlasSdk.bindAtlasView(lifecycle, binding.atlasView)
-        binding.atlasView.openPage()
 
-        binding.atlasView.setAtlasMessageHandler(
-            object : AtlasMessageHandler() {
-                override fun onError(message: String?) {
-                    if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                        Log.d("AtlasView", "onError: $message")
-                    }
-                }
-
-                override fun onNewTicket(ticketId: String?) {
-                    if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                        Log.d("AtlasView", "onNewTicket: $ticketId")
-                        // (requireActivity().application as AtlasDemoApplication).atlasSdk.updateCustomFields(ticketId, mapOf("customField" to "customValue")
-                    }
-                }
-
-                override fun onChangeIdentity(
-                    atlasId: String?,
-                    userId: String?,
-                    userHash: String?
-                ) {
-                    if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                        Log.d(
-                            "AtlasView",
-                            "onChangeIdentity: $atlasId $userId $userHash"
-                        )
-                    }
-                }
-            }
-        )
     }
 
     override fun onDestroyView() {

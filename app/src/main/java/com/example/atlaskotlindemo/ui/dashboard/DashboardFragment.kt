@@ -42,7 +42,8 @@ class DashboardFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        (requireActivity().application as AtlasDemoApplication).atlasSdk.atlasStatsLive.observe(viewLifecycleOwner, { stats ->
+        val atlasSdk = (requireActivity().application as AtlasDemoApplication).atlasSdk
+        atlasSdk.atlasStatsLive.observe(viewLifecycleOwner, { stats ->
             val count = stats?.conversations?.map { it.unread }?.sum() ?: 0
             binding.counterMessage.text = if (count == 0) {
                 "You have no messages"
@@ -51,7 +52,7 @@ class DashboardFragment : Fragment() {
             }
         })
 
-        val user = (requireActivity().application as AtlasDemoApplication).atlasSdk.getUser()
+        val user = atlasSdk.getUser()
         if (user != null && user.id.isNotEmpty()) {
             binding.loginField.setText(user.id)
         }
@@ -63,14 +64,14 @@ class DashboardFragment : Fragment() {
                     return@launch
                 }
 
-                (requireActivity().application as AtlasDemoApplication).atlasSdk.identify(userId = id)
+                atlasSdk.identify(userId = id)
                 Log.d("Atlas", "Logged in as $id")
             }
         }
 
         binding.logoutButton.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
-                (requireActivity().application as AtlasDemoApplication).atlasSdk.identify()
+                atlasSdk.identify()
                 binding.loginField.text.clear()
             }
         }

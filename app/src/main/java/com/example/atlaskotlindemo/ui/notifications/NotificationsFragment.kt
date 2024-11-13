@@ -18,7 +18,6 @@ import android.util.Log
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebView
-import com.example.atlaskotlindemo.R
 
 class NotificationsFragment : Fragment() {
 
@@ -48,7 +47,7 @@ class NotificationsFragment : Fragment() {
 
         // Step 2: Replace the current fragment with AtlasViewFragment in full screen
         childFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, atlasViewFragment)
+            .replace(binding.fragmentContainer.id, atlasViewFragment)
             .commitNow()
     }
 

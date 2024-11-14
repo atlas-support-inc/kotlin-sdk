@@ -30,7 +30,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import java.util.concurrent.CompletableFuture
 
 @Keep
 object AtlasSdk {
@@ -161,6 +163,18 @@ object AtlasSdk {
         }
     }
 
+    // Visible to Java
+    @JvmOverloads
+    fun identifyAsync(userId: String? = null, userHash: String? = null, userName: String? = null, userEmail: String? = null
+    ): CompletableFuture<Void> {
+        return CompletableFuture.runAsync {
+            runBlocking {
+                identify(userId, userHash, userName, userEmail)
+            }
+        }
+    }
+
+    @JvmSynthetic
     suspend fun identify(userId: String? = null, userHash: String? = null, userName: String? = null, userEmail: String? = null) {
         coroutineScope {
             var user = AtlasUser(userId ?: "", userHash ?: "", null, userName, userEmail)
@@ -356,6 +370,20 @@ object AtlasSdk {
         return null
     }
 
+    // Visible to Java
+    @JvmOverloads
+    fun updateCustomFieldsAsync(
+        ticketId: String,
+        data:  Map<String, Any>
+    ): CompletableFuture<Void> {
+        return CompletableFuture.runAsync {
+            runBlocking {
+               updateCustomFields(ticketId, data)
+            }
+        }
+    }
+
+    @JvmSynthetic
     suspend fun updateCustomFields(ticketId: String, data: Map<String, Any>) {
         atlasUser?.let {
             userRemoteRepository.updateCustomFields(it, ticketId, data)

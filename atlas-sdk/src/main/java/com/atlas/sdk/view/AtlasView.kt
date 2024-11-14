@@ -144,20 +144,6 @@ internal class AtlasView : WebView {
         defStyleAttr
     )
 
-    constructor(
-        context: Context,
-        attrs: AttributeSet?,
-        defStyleAttr: Int,
-        defStyleRes: Int
-    ) : super(context, attrs, defStyleAttr, defStyleRes)
-
-    constructor(
-        context: Context,
-        attrs: AttributeSet?,
-        defStyleAttr: Int,
-        privateBrowsing: Boolean
-    ) : super(context, attrs, defStyleAttr, privateBrowsing)
-
     fun applyConfig(appId: String, user: AtlasUser?) {
         setAppId(appId)
         setUser(user)

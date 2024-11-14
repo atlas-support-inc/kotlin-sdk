@@ -23,7 +23,7 @@ import com.atlas.sdk.repository.ConversationsRemoteRepository
 import com.atlas.sdk.repository.UserLocalRepository
 import com.atlas.sdk.repository.UserRemoteRepository
 import com.atlas.sdk.view.AtlasView
-import com.atlas.sdk.view.AtlasViewFragment
+import com.atlas.sdk.view.AtlasFragment
 import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
 import kotlinx.coroutines.Dispatchers
@@ -46,7 +46,7 @@ object AtlasSdk {
 
     private lateinit var appId: String
     private var atlasUser: AtlasUser? = null
-    private val atlasViewFragment: AtlasViewFragment? = null
+    private val atlasViewFragment: AtlasFragment? = null
     val atlasUserLive: LiveData<AtlasUser?> = MutableLiveData()
 
 
@@ -182,15 +182,12 @@ object AtlasSdk {
         }
     }
 
-    fun getAtlasViewFragment(): AtlasViewFragment {
-        if (atlasViewFragment == null) {
-            val atlasViewFragment = AtlasViewFragment()
-            atlasViewFragment.atlasSdk = this
-            atlasViewFragment.appId = appId
-            atlasViewFragment.user = atlasUser
+    fun getAtlasViewFragment(): AtlasFragment {
+        val atlasViewFragment = AtlasFragment()
+        atlasViewFragment.atlasSdk = this
+        atlasViewFragment.appId = appId
+        atlasViewFragment.user = atlasUser
 
-            return atlasViewFragment
-        }
         return atlasViewFragment
     }
 

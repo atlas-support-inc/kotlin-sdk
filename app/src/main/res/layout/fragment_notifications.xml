@@ -8,10 +8,10 @@
     tools:context=".ui.notifications.NotificationsFragment" >
 
     <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/fragment_container"
+        android:id="@+id/fragment_container_view"
         android:name="com.example.atlaskotlindemo.ui.notifications.NotificationsFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:layout_editor_absoluteX="411dp"
-        tools:layout_editor_absoluteY="731dp" />
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp" />
 </androidx.constraintlayout.widget.ConstraintLayout>

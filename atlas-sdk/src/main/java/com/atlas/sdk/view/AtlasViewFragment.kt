@@ -18,7 +18,7 @@ import com.atlas.sdk.data.AtlasMessageHandler
 import com.atlas.sdk.data.AtlasUser
 import com.atlas.sdk.databinding.FragmentAtlasViewBinding
 
-class AtlasViewFragment : Fragment() {
+class AtlasFragment : Fragment() {
 
     internal var atlasSdk: AtlasSdk? = null
     internal var appId: String? = null
@@ -52,35 +52,6 @@ class AtlasViewFragment : Fragment() {
         appId?.let { binding.atlasView.applyConfig(it, user) }
         binding.atlasView.openPage()
 
-        binding.atlasView.setAtlasMessageHandler(
-            object : AtlasMessageHandler() {
-                override fun onError(message: String?) {
-                    if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                        Log.d("AtlasView", "onError: $message")
-                    }
-                }
-
-                override fun onNewTicket(ticketId: String?) {
-                    if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                        Log.d("AtlasView", "onNewTicket: $ticketId")
-                        // (requireActivity().application as AtlasDemoApplication).atlasSdk.updateCustomFields(ticketId, mapOf("customField" to "customValue")
-                    }
-                }
-
-                override fun onChangeIdentity(
-                    atlasId: String?,
-                    userId: String?,
-                    userHash: String?
-                ) {
-                    if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                        Log.d(
-                            "AtlasView",
-                            "onChangeIdentity: $atlasId $userId $userHash"
-                        )
-                    }
-                }
-            }
-        )
         configureBroadcastReceiver()
     }
 

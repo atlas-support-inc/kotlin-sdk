@@ -9,6 +9,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.atlas.sdk.AtlasSdk
 import com.example.atlaskotlindemo.AtlasDemoApplication
 import com.example.atlaskotlindemo.databinding.FragmentDashboardBinding
 import kotlinx.coroutines.launch
@@ -42,8 +43,7 @@ class DashboardFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val atlasSdk = (requireActivity().application as AtlasDemoApplication).atlasSdk
-        atlasSdk.atlasStatsLive.observe(viewLifecycleOwner, { stats ->
+        AtlasSdk.atlasStatsLive.observe(viewLifecycleOwner, { stats ->
             val count = stats?.conversations?.map { it.unread }?.sum() ?: 0
             binding.counterMessage.text = if (count == 0) {
                 "You have no messages"
@@ -52,7 +52,7 @@ class DashboardFragment : Fragment() {
             }
         })
 
-        val user = atlasSdk.getUser()
+        val user = AtlasSdk.getUser()
         if (user != null && user.id.isNotEmpty()) {
             binding.loginField.setText(user.id)
         }
@@ -64,14 +64,14 @@ class DashboardFragment : Fragment() {
                     return@launch
                 }
 
-                atlasSdk.identify(userId = id)
+                AtlasSdk.identify(userId = id)
                 Log.d("Atlas", "Logged in as $id")
             }
         }
 
         binding.logoutButton.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
-                atlasSdk.identify()
+                AtlasSdk.identify()
                 binding.loginField.text.clear()
             }
         }

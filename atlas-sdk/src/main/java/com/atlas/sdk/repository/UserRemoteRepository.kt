@@ -5,17 +5,14 @@ import com.atlas.sdk.api.UpdateCustomFieldsRequest
 import com.atlas.sdk.data.AtlasUser
 import com.atlas.sdk.data.LoginResponse
 import com.google.gson.Gson
-import java.util.concurrent.CompletableFuture
 
 class UserRemoteRepository(gson: Gson) : AbstractRemoteRepository(gson) {
 
-    fun login(
+    suspend fun login(
         appId: String,
         atlasUser: AtlasUser
-    ): CompletableFuture<LoginResponse?> {
-        return CompletableFuture.supplyAsync {
-            return@supplyAsync executeWithResponse<LoginResponse>(LoginRequest(appId, atlasUser).generateRequest()).get()
-        }
+    ): LoginResponse? {
+        return executeWithResponse<LoginResponse>(LoginRequest(appId, atlasUser).generateRequest())
     }
 
     suspend fun updateCustomFields(

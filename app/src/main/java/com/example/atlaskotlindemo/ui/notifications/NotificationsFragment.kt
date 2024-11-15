@@ -42,12 +42,12 @@ class NotificationsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Step 1: Create AtlasViewFragment
-        val atlasViewFragment = AtlasSdk.getAtlasViewFragment()
+        // Step 1: Create AtlasFragment
+        val atlasFragment = AtlasSdk.getAtlasFragment()
 
-        // Step 2: Replace the current fragment with AtlasViewFragment in full screen
+        // Step 2: Replace the current fragment with AtlasFragment in full screen
         childFragmentManager.beginTransaction()
-            .replace(binding.fragmentContainerView.id, atlasViewFragment)
+            .replace(binding.fragmentContainerView.id, atlasFragment)
             .commitNow()
     }
 

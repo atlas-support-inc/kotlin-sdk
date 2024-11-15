@@ -182,7 +182,7 @@ object AtlasSdk {
         }
     }
 
-    fun getAtlasViewFragment(): AtlasFragment {
+    fun getAtlasFragment(): AtlasFragment {
         val atlasViewFragment = AtlasFragment()
         atlasViewFragment.atlasSdk = this
         atlasViewFragment.appId = appId

@@ -397,9 +397,9 @@ object AtlasSdk {
     const val PREF_FILE = "atlassdk"
     const val PREF_DATA_NAME = "atlassdk"
 
-    const val ON_ERROR_ACTION = "ON_ERROR_ACTION"
-    const val ON_NEW_TICKET_ACTION = "ON_NEW_TICKET_ACTION"
-    const val ON_CHANGE_IDENTITY_ACTION = "ON_CHANGE_IDENTITY_ACTION"
+    const val ON_ERROR_ACTION = "ATLAS_ON_ERROR_ACTION"
+    const val ON_NEW_TICKET_ACTION = "ATLAS_ON_NEW_TICKET_ACTION"
+    const val ON_CHANGE_IDENTITY_ACTION = "ATLAS_ON_CHANGE_IDENTITY_ACTION"
 
     const val TAG = "AtlasSdk"
 

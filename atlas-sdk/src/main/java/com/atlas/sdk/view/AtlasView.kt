@@ -36,17 +36,12 @@ import java.io.File
 
 @Keep
 @SuppressLint("SetJavaScriptEnabled")
-class AtlasView : WebView {
+internal class AtlasView : WebView {
 
     private lateinit var filePickerLifeCycleObserver: FilePickerLifeCycleObserver
-    private fun bindToLifeCycle(lifecycle: Lifecycle) {
+    fun bindToLifeCycle(lifecycle: Lifecycle) {
         lifecycle.addObserver(filePickerLifeCycleObserver)
     }
-
-    private var intentFilter = IntentFilter().apply {
-        addAction(AtlasSdk.ON_CHANGE_IDENTITY_ACTION)
-    }
-    private var receiver: BroadcastReceiver? = null
 
     private var appId: String = ""
     fun setAppId(appId: String) {
@@ -59,9 +54,8 @@ class AtlasView : WebView {
     }
 
     private var sdkAtlasMessageHandler: InternalMessageHandler? = null
-
     @Keep
-    private fun setSdkAtlasMessageHandler(atlasMessageHandler: InternalMessageHandler?) {
+    fun setSdkAtlasMessageHandler(atlasMessageHandler: InternalMessageHandler?) {
         this.sdkAtlasMessageHandler = atlasMessageHandler
     }
 
@@ -150,20 +144,6 @@ class AtlasView : WebView {
         defStyleAttr
     )
 
-    constructor(
-        context: Context,
-        attrs: AttributeSet?,
-        defStyleAttr: Int,
-        defStyleRes: Int
-    ) : super(context, attrs, defStyleAttr, defStyleRes)
-
-    constructor(
-        context: Context,
-        attrs: AttributeSet?,
-        defStyleAttr: Int,
-        privateBrowsing: Boolean
-    ) : super(context, attrs, defStyleAttr, privateBrowsing)
-
     fun applyConfig(appId: String, user: AtlasUser?) {
         setAppId(appId)
         setUser(user)
@@ -186,40 +166,11 @@ class AtlasView : WebView {
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
 
-        receiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                when (intent?.action) {
-                    AtlasSdk.ON_CHANGE_IDENTITY_ACTION -> {
-                        (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            intent.extras?.getParcelable(
-                                AtlasUser::class.java.simpleName,
-                                AtlasUser::class.java
-                            )
-                        } else {
-                            intent.extras?.getParcelable<AtlasUser>(AtlasUser::class.java.simpleName)
-                        })?.let { intentUser ->
-                            if (atlasUser?.atlasId != intentUser.atlasId) {
-                                setUser(intentUser)
-                                openPage()
-                            } else {
-                                setUser(intentUser)
-                            }
-                        }
 
-                    }
-                }
-            }
-        }
-        LocalBroadcastManager.getInstance(context).registerReceiver(receiver!!, intentFilter)
     }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
-
-        receiver?.let {
-            LocalBroadcastManager.getInstance(context).unregisterReceiver(it)
-        }
-        receiver = null
 
         removeAtlasMessageHandler()
         loadUrl("file://")
@@ -319,4 +270,5 @@ class AtlasView : WebView {
             const val PHOTO_FILE_NAME_PREFIX = "atlas_photo_capture_"
         }
     }
+
 }

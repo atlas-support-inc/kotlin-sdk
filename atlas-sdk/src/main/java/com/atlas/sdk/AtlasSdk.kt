@@ -23,13 +23,16 @@ import com.atlas.sdk.repository.ConversationsRemoteRepository
 import com.atlas.sdk.repository.UserLocalRepository
 import com.atlas.sdk.repository.UserRemoteRepository
 import com.atlas.sdk.view.AtlasView
+import com.atlas.sdk.view.AtlasFragment
 import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import java.util.concurrent.CompletableFuture
 
 @Keep
 object AtlasSdk {
@@ -43,9 +46,11 @@ object AtlasSdk {
 
     private lateinit var appId: String
     private var atlasUser: AtlasUser? = null
+    private val atlasViewFragment: AtlasFragment? = null
     val atlasUserLive: LiveData<AtlasUser?> = MutableLiveData()
 
-    private val internalAtlasMessageHandler = object : InternalMessageHandler {
+
+    internal val internalAtlasMessageHandler = object : InternalMessageHandler {
         override fun onError(message: String?) {
             // Log.d(TAG, "onError:$message")
             atlasMessageHandlers.forEach {
@@ -119,7 +124,6 @@ object AtlasSdk {
 
     fun getUser(): AtlasUser? = atlasUser
 
-
     private suspend fun restore(user: AtlasUser? = null) {
         coroutineScope {
             if (user == null || user.isEmpty) {
@@ -159,6 +163,18 @@ object AtlasSdk {
         }
     }
 
+    // Visible to Java
+    @JvmOverloads
+    fun identifyAsync(userId: String? = null, userHash: String? = null, userName: String? = null, userEmail: String? = null
+    ): CompletableFuture<Void> {
+        return CompletableFuture.runAsync {
+            runBlocking {
+                identify(userId, userHash, userName, userEmail)
+            }
+        }
+    }
+
+    @JvmSynthetic
     suspend fun identify(userId: String? = null, userHash: String? = null, userName: String? = null, userEmail: String? = null) {
         coroutineScope {
             var user = AtlasUser(userId ?: "", userHash ?: "", null, userName, userEmail)
@@ -166,16 +182,13 @@ object AtlasSdk {
         }
     }
 
-    fun bindAtlasView(lifecycle: Lifecycle, atlasView: AtlasView) {
-        val sdkAtlasMessageHandler = AtlasView::class.java.getDeclaredMethod("setSdkAtlasMessageHandler", InternalMessageHandler::class.java)
-        sdkAtlasMessageHandler.isAccessible = true
-        sdkAtlasMessageHandler.invoke(atlasView, internalAtlasMessageHandler)
+    fun getAtlasFragment(): AtlasFragment {
+        val atlasViewFragment = AtlasFragment()
+        atlasViewFragment.atlasSdk = this
+        atlasViewFragment.appId = appId
+        atlasViewFragment.user = atlasUser
 
-        val bindToLifeCycleMethod = AtlasView::class.java.getDeclaredMethod("bindToLifeCycle", Lifecycle::class.java)
-        bindToLifeCycleMethod.isAccessible = true
-        bindToLifeCycleMethod.invoke(atlasView, lifecycle)
-
-        atlasView.applyConfig(appId, atlasUser)
+        return atlasViewFragment
     }
 
     suspend fun watchStats() {
@@ -354,6 +367,20 @@ object AtlasSdk {
         return null
     }
 
+    // Visible to Java
+    @JvmOverloads
+    fun updateCustomFieldsAsync(
+        ticketId: String,
+        data:  Map<String, Any>
+    ): CompletableFuture<Void> {
+        return CompletableFuture.runAsync {
+            runBlocking {
+               updateCustomFields(ticketId, data)
+            }
+        }
+    }
+
+    @JvmSynthetic
     suspend fun updateCustomFields(ticketId: String, data: Map<String, Any>) {
         atlasUser?.let {
             userRemoteRepository.updateCustomFields(it, ticketId, data)
@@ -370,9 +397,9 @@ object AtlasSdk {
     const val PREF_FILE = "atlassdk"
     const val PREF_DATA_NAME = "atlassdk"
 
-    const val ON_ERROR_ACTION = "ON_ERROR_ACTION"
-    const val ON_NEW_TICKET_ACTION = "ON_NEW_TICKET_ACTION"
-    const val ON_CHANGE_IDENTITY_ACTION = "ON_CHANGE_IDENTITY_ACTION"
+    const val ON_ERROR_ACTION = "ATLAS_ON_ERROR_ACTION"
+    const val ON_NEW_TICKET_ACTION = "ATLAS_ON_NEW_TICKET_ACTION"
+    const val ON_CHANGE_IDENTITY_ACTION = "ATLAS_ON_CHANGE_IDENTITY_ACTION"
 
     const val TAG = "AtlasSdk"
 

@@ -10,9 +10,12 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.util.AttributeSet
+import android.webkit.ConsoleMessage
 import android.webkit.JavascriptInterface
+import android.webkit.JsResult
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
+import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.result.ActivityResult
@@ -111,6 +114,21 @@ internal class AtlasView : WebView {
     init {
         webViewClient = WebViewClient()
         webChromeClient = object : WebChromeClient() {
+            override fun onJsAlert(
+                view: WebView?,
+                url: String?,
+                message: String?,
+                result: JsResult?
+            ): Boolean {
+                println(String)
+                return super.onJsAlert(view, url, message, result)
+            }
+
+            override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
+                println(String)
+                return super.onConsoleMessage(consoleMessage)
+            }
+
             override fun onShowFileChooser(
                 webView: WebView?,
                 filePathCallback: ValueCallback<Array<Uri>>?,
@@ -124,11 +142,15 @@ internal class AtlasView : WebView {
                 return true
             }
         }
+
         with(settings) {
             javaScriptEnabled = true
             databaseEnabled = true
             domStorageEnabled = true
+            mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
         }
+
+        setWebContentsDebuggingEnabled(true)
         addJavascriptInterface(atlasAppInterface, "FlutterWebView")
 
         (context as? FragmentActivity)?.activityResultRegistry?.let { registry ->
@@ -151,16 +173,18 @@ internal class AtlasView : WebView {
 
     fun openPage() {
         val uri = Uri.parse(Config.ATLAS_WIDGET_BASE_URL)
-        loadUrl(
-            Uri.Builder().scheme(uri.scheme).authority(uri.authority)
-                .appendQueryParameter(Config.PARAM_APP_ID, appId)
-                .appendQueryParameter(Config.PARAM_ATLAS_ID, atlasUser?.atlasId ?: "")
-                .appendQueryParameter(Config.PARAM_USER_ID, atlasUser?.id ?: "")
-                .appendQueryParameter(Config.PARAM_USER_HASH, atlasUser?.hash ?: "")
-                .appendQueryParameter(Config.PARAM_USER_NAME, atlasUser?.name ?: "")
-                .appendQueryParameter(Config.PARAM_USER_EMAIL, atlasUser?.email ?: "").build()
-                .toString()
-        )
+        val uriWithParam = Uri.Builder().scheme(uri.scheme)
+            .authority(uri.authority)
+            .appendQueryParameter(Config.PARAM_APP_ID, appId)
+            .appendQueryParameter(Config.PARAM_ATLAS_ID, atlasUser?.atlasId ?: "")
+            .appendQueryParameter(Config.PARAM_USER_ID, atlasUser?.id ?: "")
+            .appendQueryParameter(Config.PARAM_USER_HASH, atlasUser?.hash ?: "")
+            .appendQueryParameter(Config.PARAM_USER_NAME, atlasUser?.name ?: "")
+            .appendQueryParameter(Config.PARAM_USER_EMAIL, atlasUser?.email ?: "")
+            .build()
+            .toString()
+
+        loadUrl("https://embed.atlas.so/?appId=kxjfzvo5pp&userId=Stacy")
     }
 
     override fun onAttachedToWindow() {

@@ -33,6 +33,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 @Keep
 object AtlasSdk {
@@ -47,6 +49,8 @@ object AtlasSdk {
     private lateinit var appId: String
     private var atlasUser: AtlasUser? = null
     private val atlasViewFragment: AtlasFragment? = null
+    private val executorService: ExecutorService = Executors.newFixedThreadPool(2) // Adjust as needed
+
     val atlasUserLive: LiveData<AtlasUser?> = MutableLiveData()
 
 
@@ -166,8 +170,8 @@ object AtlasSdk {
     // Visible to Java
     @JvmOverloads
     fun identifyAsync(userId: String? = null, userHash: String? = null, userName: String? = null, userEmail: String? = null
-    ): CompletableFuture<Void> {
-        return CompletableFuture.runAsync {
+    ) {
+        executorService.execute {
             runBlocking {
                 identify(userId, userHash, userName, userEmail)
             }
@@ -332,7 +336,7 @@ object AtlasSdk {
                 (webSocketMessage.payload as? Map<String, String>)?.let { payload ->
                     payload["conversationId"]?.takeIf { it.isNotEmpty() }
                         ?.let { conversationId ->
-                            atlasStats.conversations.removeIf { it.id == conversationId }
+                            atlasStats.conversations.removeAll { it.id == conversationId }
                         }
                 }
             }
@@ -372,10 +376,10 @@ object AtlasSdk {
     fun updateCustomFieldsAsync(
         ticketId: String,
         data:  Map<String, Any>
-    ): CompletableFuture<Void> {
-        return CompletableFuture.runAsync {
+    ) {
+        executorService.submit {
             runBlocking {
-               updateCustomFields(ticketId, data)
+                updateCustomFields(ticketId, data)
             }
         }
     }

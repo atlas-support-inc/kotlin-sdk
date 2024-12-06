@@ -10,6 +10,8 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.util.AttributeSet
+import android.view.View
+import android.webkit.ConsoleMessage
 import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
@@ -149,18 +151,25 @@ internal class AtlasView : WebView {
         setUser(user)
     }
 
+    private var chatId: String = ""
+    fun setChatId(chatId: String) {
+        this.chatId = chatId
+    }
+
     fun openPage() {
         val uri = Uri.parse(Config.ATLAS_WIDGET_BASE_URL)
-        loadUrl(
-            Uri.Builder().scheme(uri.scheme).authority(uri.authority)
-                .appendQueryParameter(Config.PARAM_APP_ID, appId)
-                .appendQueryParameter(Config.PARAM_ATLAS_ID, atlasUser?.atlasId ?: "")
-                .appendQueryParameter(Config.PARAM_USER_ID, atlasUser?.id ?: "")
-                .appendQueryParameter(Config.PARAM_USER_HASH, atlasUser?.hash ?: "")
-                .appendQueryParameter(Config.PARAM_USER_NAME, atlasUser?.name ?: "")
-                .appendQueryParameter(Config.PARAM_USER_EMAIL, atlasUser?.email ?: "").build()
-                .toString()
-        )
+        val uriWithParam = Uri.Builder().scheme(uri.scheme)
+            .authority(uri.authority)
+            .appendQueryParameter(Config.PARAM_APP_ID, appId)
+            .appendQueryParameter(Config.PARAM_ATLAS_ID, atlasUser?.atlasId ?: "")
+            .appendQueryParameter(Config.PARAM_USER_ID, atlasUser?.id ?: "")
+            .appendQueryParameter(Config.PARAM_USER_HASH, atlasUser?.hash ?: "")
+            .appendQueryParameter(Config.PARAM_USER_NAME, atlasUser?.name ?: "")
+            .appendQueryParameter(Config.PARAM_CHATBOT, chatId)
+            .build()
+            .toString()
+
+        loadUrl(uriWithParam)
     }
 
     override fun onAttachedToWindow() {

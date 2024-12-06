@@ -23,9 +23,9 @@ class AtlasFragment : Fragment() {
     internal var atlasSdk: AtlasSdk? = null
     internal var appId: String? = null
     internal var user: AtlasUser? = null
+    internal var chatId: String = ""
 
     private var _binding: FragmentAtlasViewBinding? = null
-
     private val binding get() = _binding!!
 
     private var receiver: BroadcastReceiver? = null
@@ -50,6 +50,7 @@ class AtlasFragment : Fragment() {
         binding.atlasView.setSdkAtlasMessageHandler(atlasSdk?.internalAtlasMessageHandler)
         binding.atlasView.bindToLifeCycle(lifecycle)
         appId?.let { binding.atlasView.applyConfig(it, user) }
+        binding.atlasView.setChatId(chatId)
         binding.atlasView.openPage()
 
         configureBroadcastReceiver()

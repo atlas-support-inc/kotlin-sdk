@@ -182,11 +182,12 @@ object AtlasSdk {
         }
     }
 
-    fun getAtlasFragment(): AtlasFragment {
+    fun getAtlasFragment(chatId: String = ""): AtlasFragment {
         val atlasViewFragment = AtlasFragment()
         atlasViewFragment.atlasSdk = this
         atlasViewFragment.appId = appId
         atlasViewFragment.user = atlasUser
+        atlasViewFragment.chatId = chatId
 
         return atlasViewFragment
     }
@@ -223,7 +224,6 @@ object AtlasSdk {
                                             atlasStatsUpdateWatcher?.onStatsUpdate(atlasStats)
                                         }
                                     }
-
                                 }
                             connect()
                         }

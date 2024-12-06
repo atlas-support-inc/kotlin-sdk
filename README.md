@@ -107,10 +107,6 @@ Follow these steps to add and display the `AtlasFragment` dynamically:
    ```kotlin
    val atlasFragment = AtlasSdk.getAtlasFragment()
    ```
-    OR
-   ```kotlin
-   val atlasFragment = (requireActivity().application as AtlasDemoApplication).getAtlasFragment()
-   ```
 
 2. **Replace the Current Fragment with `AtlasFragment`:**  
    ```kotlin

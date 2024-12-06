@@ -12,7 +12,8 @@ class UserRemoteRepository(gson: Gson) : AbstractRemoteRepository(gson) {
         appId: String,
         atlasUser: AtlasUser
     ): LoginResponse? {
-        return executeWithResponse<LoginResponse>(LoginRequest(appId, atlasUser).generateRequest())
+        val loginReq = LoginRequest(appId, atlasUser).generateRequest()
+        return executeWithResponse<LoginResponse>(loginReq)
     }
 
     suspend fun updateCustomFields(

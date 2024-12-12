@@ -10,6 +10,7 @@ class AtlasDemoApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        atlasSdk.init(this@AtlasDemoApplication, "kxjfzvo5pp")
+        atlasSdk.setAppId("kxjfzvo5pp")
+        atlasSdk.init(this@AtlasDemoApplication)
     }
 }

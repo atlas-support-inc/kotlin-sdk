@@ -20,9 +20,6 @@ import com.atlas.sdk.databinding.FragmentAtlasViewBinding
 
 class AtlasFragment : Fragment() {
 
-    internal var atlasSdk: AtlasSdk? = null
-    internal var appId: String? = null
-    internal var user: AtlasUser? = null
     internal var chatId: String = ""
 
     private var _binding: FragmentAtlasViewBinding? = null
@@ -47,10 +44,13 @@ class AtlasFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.atlasView.setSdkAtlasMessageHandler(atlasSdk?.internalAtlasMessageHandler)
-        binding.atlasView.bindToLifeCycle(lifecycle)
-        appId?.let { binding.atlasView.applyConfig(it, user) }
+        val appId: String = AtlasSdk.appId
+        val user: AtlasUser? = AtlasSdk.atlasUser
+
+        binding.atlasView.applyConfig(appId, user)
         binding.atlasView.setChatId(chatId)
+        binding.atlasView.setSdkAtlasMessageHandler(AtlasSdk.internalAtlasMessageHandler)
+        binding.atlasView.bindToLifeCycle(lifecycle)
         binding.atlasView.openPage()
 
         configureBroadcastReceiver()
@@ -69,7 +69,7 @@ class AtlasFragment : Fragment() {
                         } else {
                             intent.extras?.getParcelable<AtlasUser>(AtlasUser::class.java.simpleName)
                         })?.let { intentUser ->
-                            if (user?.atlasId != intentUser.atlasId) {
+                            if (AtlasSdk.atlasUser?.atlasId != intentUser.atlasId) {
                                 binding.atlasView.setUser(intentUser)
                                 binding.atlasView.openPage()
                             } else {

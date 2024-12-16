@@ -186,12 +186,12 @@ object AtlasSdk {
         }
     }
 
-    fun getAtlasFragment(chatId: String = ""): AtlasFragment {
+    fun getAtlasFragment(chatbotKey: String = ""): AtlasFragment {
         if (appId.isEmpty()) {
             println("AtlasSDK Error: App ID cannot be empty.")
         }
         val atlasViewFragment = AtlasFragment()
-        atlasViewFragment.chatId = chatId
+        atlasViewFragment.setChatbotKey(chatbotKey)
 
         return atlasViewFragment
     }

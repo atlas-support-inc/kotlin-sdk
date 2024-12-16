@@ -20,7 +20,7 @@ import com.atlas.sdk.databinding.FragmentAtlasViewBinding
 
 class AtlasFragment : Fragment() {
 
-    internal var chatId: String = ""
+    private var chatbotKey: String = ""
 
     private var _binding: FragmentAtlasViewBinding? = null
     private val binding get() = _binding!!
@@ -48,12 +48,16 @@ class AtlasFragment : Fragment() {
         val user: AtlasUser? = AtlasSdk.atlasUser
 
         binding.atlasView.applyConfig(appId, user)
-        binding.atlasView.setChatId(chatId)
+        binding.atlasView.setChatId(chatbotKey)
         binding.atlasView.setSdkAtlasMessageHandler(AtlasSdk.internalAtlasMessageHandler)
         binding.atlasView.bindToLifeCycle(lifecycle)
         binding.atlasView.openPage()
 
         configureBroadcastReceiver()
+    }
+
+    internal fun setChatbotKey(chatbotKey: String) {
+        this.chatbotKey = chatbotKey
     }
 
     private fun configureBroadcastReceiver() {

@@ -162,9 +162,9 @@ internal class AtlasView : WebView {
             .authority(uri.authority)
             .appendQueryParameter(Config.PARAM_APP_ID, appId)
             .appendQueryParameter(Config.PARAM_ATLAS_ID, atlasUser?.atlasId ?: "")
-            .appendQueryParameter(Config.PARAM_USER_ID, atlasUser?.id ?: "")
-            .appendQueryParameter(Config.PARAM_USER_HASH, atlasUser?.hash ?: "")
-            .appendQueryParameter(Config.PARAM_USER_NAME, atlasUser?.name ?: "")
+//            .appendQueryParameter(Config.PARAM_USER_ID, atlasUser?.id ?: "")
+//            .appendQueryParameter(Config.PARAM_USER_HASH, atlasUser?.hash ?: "")
+//            .appendQueryParameter(Config.PARAM_USER_NAME, atlasUser?.name ?: "")
             .appendQueryParameter(Config.PARAM_CHATBOT, chatId)
             .build()
             .toString()
@@ -174,8 +174,6 @@ internal class AtlasView : WebView {
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-
-
     }
 
     override fun onDetachedFromWindow() {

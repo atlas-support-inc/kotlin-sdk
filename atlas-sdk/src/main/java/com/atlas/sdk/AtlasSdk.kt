@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import androidx.annotation.Keep
+import androidx.annotation.NonNull
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
@@ -46,8 +47,8 @@ object AtlasSdk {
     private val userRemoteRepository = UserRemoteRepository(gson)
     private val conversationsRemoteRepository = ConversationsRemoteRepository(gson)
 
-    private lateinit var appId: String
-    private var atlasUser: AtlasUser? = null
+    internal var appId: String = ""
+    internal var atlasUser: AtlasUser? = null
     private val atlasViewFragment: AtlasFragment? = null
     private val executorService: ExecutorService = Executors.newFixedThreadPool(2) // Adjust as needed
 
@@ -113,10 +114,13 @@ object AtlasSdk {
         this.atlasStatsUpdateWatcher = null
     }
 
-    fun init(context: Application, appId: String) {
+    fun setAppId(appId: String) {
+        this.appId = appId
+    }
+
+    fun init(context: Application) {
         this.localBroadcastManager = LocalBroadcastManager.getInstance(context)
 
-        this.appId = appId
         userLocalRepository = UserLocalRepository(getSharedPreferences(context), gson)
 
         GlobalScope.launch {
@@ -186,11 +190,12 @@ object AtlasSdk {
         }
     }
 
-    fun getAtlasFragment(): AtlasFragment {
+    fun getAtlasFragment(chatId: String = ""): AtlasFragment {
+        if (appId.isEmpty()) {
+            println("AtlasSDK Error: App ID cannot be empty.")
+        }
         val atlasViewFragment = AtlasFragment()
-        atlasViewFragment.atlasSdk = this
-        atlasViewFragment.appId = appId
-        atlasViewFragment.user = atlasUser
+        atlasViewFragment.chatId = chatId
 
         return atlasViewFragment
     }
@@ -227,7 +232,6 @@ object AtlasSdk {
                                             atlasStatsUpdateWatcher?.onStatsUpdate(atlasStats)
                                         }
                                     }
-
                                 }
                             connect()
                         }

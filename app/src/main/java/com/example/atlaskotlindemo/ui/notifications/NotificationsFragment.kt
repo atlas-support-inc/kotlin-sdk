@@ -41,6 +41,7 @@ class NotificationsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val atlasSdk = (requireActivity().application as AtlasDemoApplication).atlasSdk
 
         // Step 1: Create AtlasFragment
         val atlasFragment = AtlasSdk.getAtlasFragment()

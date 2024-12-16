@@ -10,6 +10,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.util.AttributeSet
+import android.view.View
 import android.webkit.ConsoleMessage
 import android.webkit.JavascriptInterface
 import android.webkit.JsResult
@@ -171,6 +172,11 @@ internal class AtlasView : WebView {
         setUser(user)
     }
 
+    private var chatId: String = ""
+    fun setChatId(chatId: String) {
+        this.chatId = chatId
+    }
+
     fun openPage() {
         val uri = Uri.parse(Config.ATLAS_WIDGET_BASE_URL)
         val uriWithParam = Uri.Builder().scheme(uri.scheme)
@@ -181,10 +187,11 @@ internal class AtlasView : WebView {
             .appendQueryParameter(Config.PARAM_USER_HASH, atlasUser?.hash ?: "")
             .appendQueryParameter(Config.PARAM_USER_NAME, atlasUser?.name ?: "")
             .appendQueryParameter(Config.PARAM_USER_EMAIL, atlasUser?.email ?: "")
+            .appendQueryParameter(Config.PARAM_CHATBOT, chatId)
             .build()
             .toString()
 
-        loadUrl("https://embed.atlas.so/?appId=kxjfzvo5pp&userId=Stacy")
+        loadUrl(uriWithParam)
     }
 
     override fun onAttachedToWindow() {

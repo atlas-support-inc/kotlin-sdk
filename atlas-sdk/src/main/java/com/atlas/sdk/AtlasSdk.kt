@@ -46,6 +46,7 @@ object AtlasSdk {
     private val conversationsRemoteRepository = ConversationsRemoteRepository(gson)
 
     internal var appId: String = ""
+    internal var chatbotKey: String = ""
     internal var atlasUser: AtlasUser? = null
     private val atlasViewFragment: AtlasFragment? = null
     val atlasUserLive: LiveData<AtlasUser?> = MutableLiveData()
@@ -187,11 +188,11 @@ object AtlasSdk {
     }
 
     fun getAtlasFragment(chatbotKey: String = ""): AtlasFragment {
+        this.chatbotKey = chatbotKey
         if (appId.isEmpty()) {
             println("AtlasSDK Error: App ID cannot be empty.")
         }
         val atlasViewFragment = AtlasFragment()
-        atlasViewFragment.setChatbotKey(chatbotKey)
 
         return atlasViewFragment
     }

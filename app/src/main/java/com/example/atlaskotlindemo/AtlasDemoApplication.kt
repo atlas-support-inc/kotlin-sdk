@@ -23,3 +23,5 @@ class AtlasDemoApplication : Application() {
         }
     }
 }
+
+//https://embed.atlas.so/?appId=ev9731xvjb&chatbot=n_other_topics

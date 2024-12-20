@@ -111,11 +111,7 @@ object AtlasSdk {
     fun unregisterAtlasStatsUpdateWatcher() {
         this.atlasStatsUpdateWatcher = null
     }
-
-    fun setLegacy(legacy: Boolean) {
-        this.legacy = legacy
-    }
-
+    
     fun init(context: Application, appId: String) {
         this.appId = appId
         this.localBroadcastManager = LocalBroadcastManager.getInstance(context)
@@ -189,8 +185,9 @@ object AtlasSdk {
         }
     }
 
-    fun getAtlasFragment(chatbotKey: String = ""): AtlasFragment {
+    fun getAtlasFragment(chatbotKey: String = "", legacy: Boolean = false): AtlasFragment {
         this.chatbotKey = chatbotKey
+        this.legacy = legacy
         if (appId.isEmpty()) {
             println("AtlasSDK Error: App ID cannot be empty.")
         }

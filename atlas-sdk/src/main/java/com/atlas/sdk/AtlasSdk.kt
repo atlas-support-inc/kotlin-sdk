@@ -48,6 +48,7 @@ object AtlasSdk {
     internal var appId: String = ""
     internal var chatbotKey: String = ""
     internal var atlasUser: AtlasUser? = null
+    internal var legacy: Boolean = false
     private val atlasViewFragment: AtlasFragment? = null
     val atlasUserLive: LiveData<AtlasUser?> = MutableLiveData()
 
@@ -111,11 +112,12 @@ object AtlasSdk {
         this.atlasStatsUpdateWatcher = null
     }
 
-    fun setAppId(appId: String) {
-        this.appId = appId
+    fun setLegacy(legacy: Boolean) {
+        this.legacy = legacy
     }
 
-    fun init(context: Application) {
+    fun init(context: Application, appId: String) {
+        this.appId = appId
         this.localBroadcastManager = LocalBroadcastManager.getInstance(context)
 
         userLocalRepository = UserLocalRepository(getSharedPreferences(context), gson)

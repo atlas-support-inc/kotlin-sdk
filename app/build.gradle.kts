@@ -49,7 +49,8 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
     implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
     // SDK Source Code
-    implementation(project(mapOf("path" to ":atlas-sdk")))
+    implementation("so.atlas:atlas-sdk:1.0.0")
+//    implementation(project(mapOf("path" to ":atlas-sdk")))
     // SDK Compiled version
     //implementation(project(mapOf("path" to ":atlas-sdk-aar")))
     testImplementation("junit:junit:4.13.2")

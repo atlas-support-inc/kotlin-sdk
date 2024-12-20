@@ -20,5 +20,7 @@ class Config {
         const val MESSAGE_TYPE_ERROR = "atlas:error"
         const val MESSAGE_TYPE_NEW_TICKET = "atlas:newTicket"
         const val MESSAGE_TYPE_CHANGE_IDENTITY = "atlas:changeIdentity"
+
+        const val PARAM_ES5 = "es5"
     }
 }

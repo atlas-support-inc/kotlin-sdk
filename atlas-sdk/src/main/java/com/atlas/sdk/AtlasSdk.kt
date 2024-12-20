@@ -48,6 +48,7 @@ object AtlasSdk {
     internal var appId: String = ""
     internal var chatbotKey: String = ""
     internal var atlasUser: AtlasUser? = null
+    internal var legacy: Boolean = false
     private val atlasViewFragment: AtlasFragment? = null
     val atlasUserLive: LiveData<AtlasUser?> = MutableLiveData()
 
@@ -110,12 +111,9 @@ object AtlasSdk {
     fun unregisterAtlasStatsUpdateWatcher() {
         this.atlasStatsUpdateWatcher = null
     }
-
-    fun setAppId(appId: String) {
+    
+    fun init(context: Application, appId: String) {
         this.appId = appId
-    }
-
-    fun init(context: Application) {
         this.localBroadcastManager = LocalBroadcastManager.getInstance(context)
 
         userLocalRepository = UserLocalRepository(getSharedPreferences(context), gson)
@@ -187,8 +185,9 @@ object AtlasSdk {
         }
     }
 
-    fun getAtlasFragment(chatbotKey: String = ""): AtlasFragment {
+    fun getAtlasFragment(chatbotKey: String = "", legacy: Boolean = false): AtlasFragment {
         this.chatbotKey = chatbotKey
+        this.legacy = legacy
         if (appId.isEmpty()) {
             println("AtlasSDK Error: App ID cannot be empty.")
         }

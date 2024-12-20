@@ -162,14 +162,15 @@ internal class AtlasView : WebView {
             .authority(uri.authority)
             .appendQueryParameter(Config.PARAM_APP_ID, appId)
             .appendQueryParameter(Config.PARAM_ATLAS_ID, atlasUser?.atlasId ?: "")
-//            .appendQueryParameter(Config.PARAM_USER_ID, atlasUser?.id ?: "")
-//            .appendQueryParameter(Config.PARAM_USER_HASH, atlasUser?.hash ?: "")
-//            .appendQueryParameter(Config.PARAM_USER_NAME, atlasUser?.name ?: "")
             .appendQueryParameter(Config.PARAM_CHATBOT, chatId)
-            .build()
-            .toString()
 
-        loadUrl(uriWithParam)
+        if (AtlasSdk.legacy) {
+            uriWithParam.appendQueryParameter(Config.PARAM_ES5, "1")
+        }
+
+        val url = uriWithParam.build().toString()
+
+        loadUrl(url)
     }
 
     override fun onAttachedToWindow() {

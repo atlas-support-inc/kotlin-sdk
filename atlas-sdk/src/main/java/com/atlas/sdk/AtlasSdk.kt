@@ -1,6 +1,7 @@
 package com.atlas.sdk
 
 import android.app.Application
+import android.app.DownloadManager.Query
 import android.content.Context
 import android.content.Intent
 import androidx.annotation.Keep
@@ -47,6 +48,7 @@ object AtlasSdk {
 
     internal var appId: String = ""
     internal var chatbotKey: String = ""
+    internal var query: String = ""
     internal var atlasUser: AtlasUser? = null
     internal var legacy: Boolean = false
     private val atlasViewFragment: AtlasFragment? = null
@@ -185,8 +187,8 @@ object AtlasSdk {
         }
     }
 
-    fun getAtlasFragment(chatbotKey: String = "", legacy: Boolean = false): AtlasFragment {
-        this.chatbotKey = chatbotKey
+    fun getAtlasFragment(query: String = "", legacy: Boolean = false): AtlasFragment {
+        this.query = query
         this.legacy = legacy
         if (appId.isEmpty()) {
             println("AtlasSDK Error: App ID cannot be empty.")

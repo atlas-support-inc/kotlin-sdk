@@ -156,13 +156,18 @@ internal class AtlasView : WebView {
         this.chatId = chatId
     }
 
+    private var query: String = ""
+    fun setQuery(query: String) {
+        this.query = query
+    }
+
     fun openPage() {
         val uri = Uri.parse(Config.ATLAS_WIDGET_BASE_URL)
         val uriWithParam = Uri.Builder().scheme(uri.scheme)
             .authority(uri.authority)
             .appendQueryParameter(Config.PARAM_APP_ID, appId)
             .appendQueryParameter(Config.PARAM_ATLAS_ID, atlasUser?.atlasId ?: "")
-            .appendQueryParameter(Config.PARAM_CHATBOT, chatId)
+            .appendQueryParameter("query", Uri.encode(query))
 
         if (AtlasSdk.legacy) {
             uriWithParam.appendQueryParameter(Config.PARAM_ES5, "1")

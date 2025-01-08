@@ -43,7 +43,7 @@ class NotificationsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // Step 1: Create AtlasFragment
-        val atlasFragment = AtlasSdk.getAtlasFragment(chatbotKey = "n_other_topics")
+        val atlasFragment = AtlasSdk.getAtlasFragment(query = "chatbotKey: n_other_topics; prefer: last")
 
         // Step 2: Replace the current fragment with AtlasFragment in full screen
         childFragmentManager.beginTransaction()

@@ -44,10 +44,10 @@ class AtlasFragment : Fragment() {
 
         val appId: String = AtlasSdk.appId
         val user: AtlasUser? = AtlasSdk.atlasUser
-        val chatbotKey = AtlasSdk.chatbotKey
+        val query = AtlasSdk.query
 
         binding.atlasView.applyConfig(appId, user)
-        binding.atlasView.setChatId(chatbotKey)
+        binding.atlasView.setQuery(query)
         binding.atlasView.setSdkAtlasMessageHandler(AtlasSdk.internalAtlasMessageHandler)
         binding.atlasView.bindToLifeCycle(lifecycle)
         binding.atlasView.openPage()

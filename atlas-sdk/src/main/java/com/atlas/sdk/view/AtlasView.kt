@@ -151,11 +151,6 @@ internal class AtlasView : WebView {
         setUser(user)
     }
 
-    private var chatId: String = ""
-    fun setChatId(chatId: String) {
-        this.chatId = chatId
-    }
-
     private var query: String = ""
     fun setQuery(query: String) {
         this.query = query
@@ -167,7 +162,7 @@ internal class AtlasView : WebView {
             .authority(uri.authority)
             .appendQueryParameter(Config.PARAM_APP_ID, appId)
             .appendQueryParameter(Config.PARAM_ATLAS_ID, atlasUser?.atlasId ?: "")
-            .appendQueryParameter("query", Uri.encode(query))
+            .appendQueryParameter(Config.PARAM_QUERY, Uri.encode(query))
 
         if (AtlasSdk.legacy) {
             uriWithParam.appendQueryParameter(Config.PARAM_ES5, "1")

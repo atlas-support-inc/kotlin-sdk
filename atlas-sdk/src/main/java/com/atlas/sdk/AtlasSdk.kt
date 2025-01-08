@@ -1,7 +1,6 @@
 package com.atlas.sdk
 
 import android.app.Application
-import android.app.DownloadManager.Query
 import android.content.Context
 import android.content.Intent
 import androidx.annotation.Keep

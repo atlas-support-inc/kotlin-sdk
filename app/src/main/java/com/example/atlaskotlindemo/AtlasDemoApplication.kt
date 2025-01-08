@@ -12,7 +12,7 @@ class AtlasDemoApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        atlasSdk.init(this@AtlasDemoApplication, appId = "7wukb9ywp9__x33kupocfb")
+        atlasSdk.init(this@AtlasDemoApplication, appId = "kxjfzvo5pp")
 
         val user = "14f4771a-c43a-473c-ad22-7d3c5b8dd736"
         CompletableFuture.runAsync {

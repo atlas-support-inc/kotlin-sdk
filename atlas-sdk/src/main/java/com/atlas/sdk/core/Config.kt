@@ -11,10 +11,6 @@ class Config {
 
         const val PARAM_APP_ID = "appId"
         const val PARAM_ATLAS_ID = "atlasId"
-        const val PARAM_USER_ID = "userId"
-        const val PARAM_USER_HASH = "userHash"
-        const val PARAM_USER_NAME = "userName"
-        const val PARAM_USER_EMAIL = "userEmail"
         const val PARAM_QUERY = "query"
 
         const val MESSAGE_TYPE_ERROR = "atlas:error"

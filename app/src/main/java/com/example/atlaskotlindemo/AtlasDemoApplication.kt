@@ -2,8 +2,9 @@ package com.example.atlaskotlindemo
 
 import android.app.Application
 import com.atlas.sdk.AtlasSdk
-import kotlinx.coroutines.runBlocking
-import java.util.concurrent.CompletableFuture
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class AtlasDemoApplication : Application() {
 
@@ -15,10 +16,8 @@ class AtlasDemoApplication : Application() {
         atlasSdk.init(this@AtlasDemoApplication, appId = "kxjfzvo5pp")
 
         val user = "14f4771a-c43a-473c-ad22-7d3c5b8dd736"
-        CompletableFuture.runAsync {
-            runBlocking {
-                AtlasSdk.identify(userId = user)
-            }
+        CoroutineScope(Dispatchers.IO).launch {
+            AtlasSdk.identify(userId = user)
         }
     }
 }

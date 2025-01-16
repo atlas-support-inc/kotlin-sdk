@@ -1,7 +1,13 @@
+import org.gradle.configurationcache.extensions.capitalized
+import com.vanniktech.maven.publish.SonatypeHost
+
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     id("kotlin-parcelize")
+
+    id("com.vanniktech.maven.publish") version "0.30.0"
+    id("com.gradleup.nmcp") version "0.0.8"
 }
 
 android {
@@ -34,6 +40,7 @@ android {
     buildFeatures {
         viewBinding = true
     }
+
 }
 
 dependencies {

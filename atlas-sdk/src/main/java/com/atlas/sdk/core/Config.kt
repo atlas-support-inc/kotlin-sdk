@@ -15,10 +15,12 @@ class Config {
         const val PARAM_USER_HASH = "userHash"
         const val PARAM_USER_NAME = "userName"
         const val PARAM_USER_EMAIL = "userEmail"
-        const val PARAM_CHATBOT = "chatbot"
+        const val PARAM_QUERY = "query"
 
         const val MESSAGE_TYPE_ERROR = "atlas:error"
         const val MESSAGE_TYPE_NEW_TICKET = "atlas:newTicket"
         const val MESSAGE_TYPE_CHANGE_IDENTITY = "atlas:changeIdentity"
+
+        const val PARAM_ES5 = "es5"
     }
 }

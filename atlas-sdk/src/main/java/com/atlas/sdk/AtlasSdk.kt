@@ -48,7 +48,10 @@ object AtlasSdk {
     private val conversationsRemoteRepository = ConversationsRemoteRepository(gson)
 
     internal var appId: String = ""
+    internal var chatbotKey: String = ""
+    internal var query: String = ""
     internal var atlasUser: AtlasUser? = null
+    internal var legacy: Boolean = false
     private val atlasViewFragment: AtlasFragment? = null
     private val executorService: ExecutorService = Executors.newFixedThreadPool(2) // Adjust as needed
 
@@ -113,12 +116,9 @@ object AtlasSdk {
     fun unregisterAtlasStatsUpdateWatcher() {
         this.atlasStatsUpdateWatcher = null
     }
-
-    fun setAppId(appId: String) {
+    
+    fun init(context: Application, appId: String) {
         this.appId = appId
-    }
-
-    fun init(context: Application) {
         this.localBroadcastManager = LocalBroadcastManager.getInstance(context)
 
         userLocalRepository = UserLocalRepository(getSharedPreferences(context), gson)
@@ -190,12 +190,13 @@ object AtlasSdk {
         }
     }
 
-    fun getAtlasFragment(chatId: String = ""): AtlasFragment {
+    fun getAtlasFragment(query: String = "", legacy: Boolean = false): AtlasFragment {
+        this.query = query
+        this.legacy = legacy
         if (appId.isEmpty()) {
             println("AtlasSDK Error: App ID cannot be empty.")
         }
         val atlasViewFragment = AtlasFragment()
-        atlasViewFragment.chatId = chatId
 
         return atlasViewFragment
     }

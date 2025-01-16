@@ -13,8 +13,10 @@ import android.util.AttributeSet
 import android.view.View
 import android.webkit.ConsoleMessage
 import android.webkit.JavascriptInterface
+import android.webkit.JsResult
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
+import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.result.ActivityResult
@@ -113,6 +115,21 @@ internal class AtlasView : WebView {
     init {
         webViewClient = WebViewClient()
         webChromeClient = object : WebChromeClient() {
+            override fun onJsAlert(
+                view: WebView?,
+                url: String?,
+                message: String?,
+                result: JsResult?
+            ): Boolean {
+                println(String)
+                return super.onJsAlert(view, url, message, result)
+            }
+
+            override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
+                println(String)
+                return super.onConsoleMessage(consoleMessage)
+            }
+
             override fun onShowFileChooser(
                 webView: WebView?,
                 filePathCallback: ValueCallback<Array<Uri>>?,
@@ -126,11 +143,15 @@ internal class AtlasView : WebView {
                 return true
             }
         }
+
         with(settings) {
             javaScriptEnabled = true
             databaseEnabled = true
             domStorageEnabled = true
+            mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
         }
+
+        setWebContentsDebuggingEnabled(true)
         addJavascriptInterface(atlasAppInterface, "FlutterWebView")
 
         (context as? FragmentActivity)?.activityResultRegistry?.let { registry ->

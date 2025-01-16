@@ -4,11 +4,9 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import androidx.annotation.Keep
-import androidx.annotation.NonNull
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -23,7 +21,6 @@ import com.atlas.sdk.data.InternalMessageHandler
 import com.atlas.sdk.repository.ConversationsRemoteRepository
 import com.atlas.sdk.repository.UserLocalRepository
 import com.atlas.sdk.repository.UserRemoteRepository
-import com.atlas.sdk.view.AtlasView
 import com.atlas.sdk.view.AtlasFragment
 import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
@@ -33,9 +30,9 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import android.os.Build
 
 @Keep
 object AtlasSdk {
@@ -119,6 +116,8 @@ object AtlasSdk {
     
     fun init(context: Application, appId: String) {
         this.appId = appId
+        this.legacy = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) true /* SDK version is below 24 */ else false /* Code for SDK version 24 and above */
+
         this.localBroadcastManager = LocalBroadcastManager.getInstance(context)
 
         userLocalRepository = UserLocalRepository(getSharedPreferences(context), gson)
@@ -190,9 +189,8 @@ object AtlasSdk {
         }
     }
 
-    fun getAtlasFragment(query: String = "", legacy: Boolean = false): AtlasFragment {
+    fun getAtlasFragment(query: String = ""): AtlasFragment {
         this.query = query
-        this.legacy = legacy
         if (appId.isEmpty()) {
             println("AtlasSDK Error: App ID cannot be empty.")
         }

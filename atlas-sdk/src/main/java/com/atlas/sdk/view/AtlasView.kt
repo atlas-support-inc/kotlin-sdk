@@ -177,6 +177,11 @@ internal class AtlasView : WebView {
         this.query = query
     }
 
+    private var sdkVersionName: String = ""
+    fun setSdkVersionName(sdkVersionName: String) {
+        this.sdkVersionName = sdkVersionName
+    }
+
     fun openPage() {
         val uri = Uri.parse(Config.ATLAS_WIDGET_BASE_URL)
         val uriWithParam = Uri.Builder().scheme(uri.scheme)
@@ -184,6 +189,7 @@ internal class AtlasView : WebView {
             .appendQueryParameter(Config.PARAM_APP_ID, appId)
             .appendQueryParameter(Config.PARAM_ATLAS_ID, atlasUser?.atlasId ?: "")
             .appendQueryParameter(Config.PARAM_QUERY, Uri.encode(query))
+            .appendQueryParameter(Config.PARAM_SDK_VERSION, Uri.encode(sdkVersionName))
 
         if (AtlasSdk.legacy) {
             uriWithParam.appendQueryParameter(Config.PARAM_ES5, "1")

@@ -18,10 +18,10 @@ class LoginRequest(
         jsonObject.put("userId", atlasUser.id)
         jsonObject.put("userHash", atlasUser.hash)
         atlasUser.name?.let {
-            jsonObject.put("userName", it)
+            jsonObject.put("name", it)
         }
         atlasUser.email?.let {
-            jsonObject.put("userEmail", it)
+            jsonObject.put("email", it)
         }
 
         return Request.Builder()

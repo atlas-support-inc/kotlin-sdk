@@ -19,6 +19,8 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+
+        buildConfigField("String", "VERSION_NAME", "\"${project.property("VERSION_NAME")}\"")
     }
 
     buildTypes {
@@ -39,8 +41,8 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
-
 }
 
 dependencies {

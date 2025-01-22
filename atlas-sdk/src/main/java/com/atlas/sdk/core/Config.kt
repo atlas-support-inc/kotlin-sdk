@@ -16,6 +16,7 @@ class Config {
         const val PARAM_USER_NAME = "userName"
         const val PARAM_USER_EMAIL = "userEmail"
         const val PARAM_QUERY = "query"
+        const val PARAM_SDK_VERSION = "sdkVersion"
 
         const val MESSAGE_TYPE_ERROR = "atlas:error"
         const val MESSAGE_TYPE_NEW_TICKET = "atlas:newTicket"

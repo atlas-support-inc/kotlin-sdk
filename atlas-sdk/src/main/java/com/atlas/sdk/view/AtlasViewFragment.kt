@@ -17,6 +17,7 @@ import com.atlas.sdk.AtlasSdk
 import com.atlas.sdk.data.AtlasMessageHandler
 import com.atlas.sdk.data.AtlasUser
 import com.atlas.sdk.databinding.FragmentAtlasViewBinding
+import com.atlas.sdk.BuildConfig
 
 class AtlasFragment : Fragment() {
 
@@ -45,9 +46,11 @@ class AtlasFragment : Fragment() {
         val appId: String = AtlasSdk.appId
         val user: AtlasUser? = AtlasSdk.atlasUser
         val query = AtlasSdk.query
+        val sdkVersionName = "kotlin@" + BuildConfig.VERSION_NAME
 
         binding.atlasView.applyConfig(appId, user)
         binding.atlasView.setQuery(query)
+        binding.atlasView.setSdkVersionName(sdkVersionName)
         binding.atlasView.setSdkAtlasMessageHandler(AtlasSdk.internalAtlasMessageHandler)
         binding.atlasView.bindToLifeCycle(lifecycle)
         binding.atlasView.openPage()

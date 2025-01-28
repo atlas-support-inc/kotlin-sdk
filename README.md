@@ -124,7 +124,7 @@ An optional `query` parameter in string format. The `query` is used to configure
 - Expected format: "key1: value1; key2: value2; ...."
 
 ```kotlin
-    val atlasFragment = AtlasSdk.getAtlasFragment(query = "chatbotKey: n_other_topics; prefer: last")
+    val atlasFragment = AtlasSdk.getAtlasFragment(query = "chatbotKey: report_bug; prefer: last")
    ```
 
 `chatbotKey: KEY`: Specifies the chatbot that has to be started immediately when AtlasFragment is loaded

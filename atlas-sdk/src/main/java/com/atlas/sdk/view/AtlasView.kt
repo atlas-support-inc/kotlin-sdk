@@ -279,7 +279,7 @@ internal class AtlasView : WebView {
 
             photoCaptureUri = FileProvider.getUriForFile(
                 context,
-                "${context.packageName}.fileprovider",
+                "${context.packageName}.atlas.fileprovider",
                 file
             )
             val capturePhotoIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)

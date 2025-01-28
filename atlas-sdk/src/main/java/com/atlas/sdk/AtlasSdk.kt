@@ -54,7 +54,6 @@ object AtlasSdk {
 
     val atlasUserLive: LiveData<AtlasUser?> = MutableLiveData()
 
-
     internal val internalAtlasMessageHandler = object : InternalMessageHandler {
         override fun onError(message: String?) {
             // Log.d(TAG, "onError:$message")

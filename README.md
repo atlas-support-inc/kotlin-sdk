@@ -5,9 +5,9 @@
 To utilize Atlas Kotlin SDK, copy **atlas-sdk-aar** (or download it from [https://github.com/atlas-support-inc/kotlin-sdk/raw/main/atlas-kotlin-sdk.zip](https://github.com/atlas-support-inc/kotlin-sdk/raw/main/atlas-kotlin-sdk.zip) into your project and adjust your settings accordingly:
 
 ```kts
-// build.gradle.kts
+// In build.gradle.kts. Check fo latest version
 dependencies {
-    implementation(project(mapOf("path" to ":atlas-sdk-aar")))
+    implementation("so.atlas:atlas-sdk:1.4.0") 
 }
 ```
 
@@ -30,7 +30,7 @@ class YourApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        atlasSdk.init(this@AtlasDemoApplication, "APP_ID")
+        atlasSdk.init(this@AtlasDemoApplication, appId = "APP_ID")
     }
 }
 ```
@@ -42,15 +42,16 @@ Retrieve your **APP_ID** from the [Organization Settings page](https://app.atlas
 To bind Atlas tickets to your user, confidently execute the identify method by inputting the user ID as the primary argument and the user hash if authentication is activated on the Installation Config page at https://app.atlas.so/configuration/installation. Alternatively, use an empty string if authentication is not enabled.
 
 ```kt
-val atlasSdk = (requireActivity().application as AtlasDemoApplication).atlasSdk
-
-atlasSdk.identify(userId = "...", userHash = "...", userName = "...", userEmail = "...")
+val user = "14f4771a-c43a-473c-ad22-7d3c5b8dd736"
+CoroutineScope(Dispatchers.IO).launch {
+    AtlasSdk.identify(userId = user, userHash = "...", userName = "...", userEmail = "...")
+}
 ```
 
 For logging out the user, simply call the identify method with a null value:
 
 ```kt
-atlasSdk.identify(null)
+atlasSdk.identify(userId = null)
 ```
 
 ### For Java Developers
@@ -59,9 +60,8 @@ In addition to the standard Kotlin implementation, we provide an `identifyAsync`
 
 #### Example in Java:  
 ```java
-AtlasSdk atlasSdk = ((AtlasDemoApplication) getActivity().getApplication()).getAtlasSdk();
 
-atlasSdk.identifyAsync("userId", "userHash", "userName", "userEmail")
+AtlasSdk.identifyAsync("userId", "userHash", "userName", "userEmail")
         .thenRun(() -> System.out.println("User identified successfully"))
         .exceptionally(e -> {
             e.printStackTrace();
@@ -71,7 +71,7 @@ atlasSdk.identifyAsync("userId", "userHash", "userName", "userEmail")
 
 To log out the user in Java, pass `null` for all arguments:  
 ```java
-atlasSdk.identifyAsync(null, null, null, null)
+AtlasSdk.identifyAsync(null, null, null, null)
         .thenRun(() -> System.out.println("User logged out successfully"));
 ```
 
@@ -116,6 +116,22 @@ Follow these steps to add and display the `AtlasFragment` dynamically:
    ```
 
 This allows you to replace the existing `Fragment` in your app with the `AtlasFragment` in fullscreen or within a designated container.
+
+#### Additional query parameters
+`query`` (String)
+
+An optional query parameter in string format. The query is used to configure the behavior or content of the returned AtlasFragment.
+- Default value: "" (empty string).
+- Expected format: key1: value1; key2: value2; ....
+
+```kotlin
+    val atlasFragment = AtlasSdk.getAtlasFragment(query = "chatbotKey: n_other_topics; prefer: last")
+   ```
+
+`chatbotKey`: Specifies the context or topic key for the chatbot.
+**Example:** `n_other_topics`` might refer to general or miscellaneous topics.
+`prefer`: Defines a preference or mode of operation.
+**Example:** `last` indicate prioritization of recent interactions.
 
 #### Additionally, you can monitor events occurring within the Atlas view:
 

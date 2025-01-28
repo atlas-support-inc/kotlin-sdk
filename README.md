@@ -42,9 +42,8 @@ Retrieve your **APP_ID** from the [Organization Settings page](https://app.atlas
 To bind Atlas tickets to your user, confidently execute the identify method by inputting the user ID as the primary argument and the user hash if authentication is activated on the Installation Config page at https://app.atlas.so/configuration/installation. Alternatively, use an empty string if authentication is not enabled.
 
 ```kt
-val user = "14f4771a-c43a-473c-ad22-7d3c5b8dd736"
 CoroutineScope(Dispatchers.IO).launch {
-    AtlasSdk.identify(userId = user, userHash = "...", userName = "...", userEmail = "...")
+    AtlasSdk.identify(userId = "...", userHash = "...", userName = "...", userEmail = "...")
 }
 ```
 
@@ -128,13 +127,9 @@ An optional `query` parameter in string format. The `query` is used to configure
     val atlasFragment = AtlasSdk.getAtlasFragment(query = "chatbotKey: n_other_topics; prefer: last")
    ```
 
-`chatbotKey`: Specifies the context or topic key for the chatbot.
+`chatbotKey: KEY`: Specifies the chatbot that has to be started immediately when AtlasFragment is loaded
 
-**Example:** `n_other_topics` might refer to general or miscellaneous topics.
-
-`prefer`: Defines a preference or mode of operation.
-
-**Example:** `last` indicate prioritization of recent interactions.
+`prefer: last`: Instead of starting new chatbot everytime it will open the last not completed chatbot if exists
 
 #### Additionally, you can monitor events occurring within the Atlas view:
 

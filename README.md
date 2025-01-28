@@ -118,7 +118,7 @@ Follow these steps to add and display the `AtlasFragment` dynamically:
 This allows you to replace the existing `Fragment` in your app with the `AtlasFragment` in fullscreen or within a designated container.
 
 #### Additional query parameters
-`query`` (String)
+`query` (String)
 
 An optional query parameter in string format. The query is used to configure the behavior or content of the returned AtlasFragment.
 - Default value: "" (empty string).
@@ -130,6 +130,7 @@ An optional query parameter in string format. The query is used to configure the
 
 `chatbotKey`: Specifies the context or topic key for the chatbot.
 **Example:** `n_other_topics`` might refer to general or miscellaneous topics.
+
 `prefer`: Defines a preference or mode of operation.
 **Example:** `last` indicate prioritization of recent interactions.
 

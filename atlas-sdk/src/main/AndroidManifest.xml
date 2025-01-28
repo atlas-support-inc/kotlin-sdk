@@ -5,8 +5,8 @@
     <application>
         <provider
             tools:node="merge"
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.fileprovider"
+            android:name=".FileProvider.AtlasFileProvider"
+            android:authorities="${applicationId}.atlas.fileProvider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

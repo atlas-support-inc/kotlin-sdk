@@ -15,6 +15,17 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AtlasKotlinDemo"
         tools:targetApi="31">
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true"
+            tools:replace="android:authorities">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths_main"
+                tools:replace="android:resource"/>
+        </provider>
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -27,3 +38,4 @@
     </application>
 
 </manifest>
+

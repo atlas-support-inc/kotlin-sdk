@@ -129,9 +129,11 @@ An optional `query` parameter in string format. The `query` is used to configure
    ```
 
 `chatbotKey`: Specifies the context or topic key for the chatbot.
+
 **Example:** `n_other_topics` might refer to general or miscellaneous topics.
 
 `prefer`: Defines a preference or mode of operation.
+
 **Example:** `last` indicate prioritization of recent interactions.
 
 #### Additionally, you can monitor events occurring within the Atlas view:

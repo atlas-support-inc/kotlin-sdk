@@ -171,19 +171,19 @@ object AtlasSdk {
 
     // Visible to Java
     @JvmOverloads
-    fun identifyAsync(userId: String? = null, userHash: String? = null, userName: String? = null, userEmail: String? = null
+    fun identifyAsync(userId: String? = null, userHash: String? = null, userName: String? = null, userEmail: String? = null, phoneNumber: String? = null
     ) {
         executorService.execute {
             runBlocking {
-                identify(userId, userHash, userName, userEmail)
+                identify(userId, userHash, userName, userEmail, phoneNumber)
             }
         }
     }
 
     @JvmSynthetic
-    suspend fun identify(userId: String? = null, userHash: String? = null, userName: String? = null, userEmail: String? = null) {
+    suspend fun identify(userId: String? = null, userHash: String? = null, userName: String? = null, userEmail: String? = null, phoneNumber: String? = null) {
         coroutineScope {
-            var user = AtlasUser(userId ?: "", userHash ?: "", null, userName, userEmail)
+            var user = AtlasUser(userId ?: "", userHash ?: "", null, userName, userEmail, phoneNumber)
             restore(user)
         }
     }

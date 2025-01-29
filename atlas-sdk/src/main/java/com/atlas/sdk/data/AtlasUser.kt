@@ -11,7 +11,8 @@ data class AtlasUser(
     val hash: String,
     var atlasId: String? = null,
     val name: String? = null,
-    val email: String? = null
+    val email: String? = null,
+    val phoneNumber: String? = null
 ) : Parcelable {
 
     val isEmpty

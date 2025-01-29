@@ -23,6 +23,9 @@ class LoginRequest(
         atlasUser.email?.let {
             jsonObject.put("email", it)
         }
+        atlasUser.phoneNumber?.let {
+            jsonObject.put("phoneNumber", it)
+        }
 
         return Request.Builder()
             .url(Config.LOGIN_URL)

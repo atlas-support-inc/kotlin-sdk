@@ -43,7 +43,7 @@ class WebSocketConnectionListener(val atlasId: String, val gson: Gson) : WebSock
         jsonObject.put("channel_id", atlasId)
         jsonObject.put("channel_kind", "CUSTOMER")
         jsonObject.put("packet_type", "SUBSCRIBE")
-        jsonObject.put("payload",  "{}")
+        jsonObject.put("payload",  {})
         webSocket.send(jsonObject.toString())
     }
 

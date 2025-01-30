@@ -176,8 +176,8 @@ object AtlasSdk {
         userHash: String? = null,
         userDetails: Map<String, String?> = emptyMap() // Dictionary for userName, userEmail, phoneNumber
     ) {
-        val userName = userDetails["userName"]
-        val userEmail = userDetails["userEmail"]
+        val userName = userDetails["name"]
+        val userEmail = userDetails["email"]
         val phoneNumber = userDetails["phoneNumber"]
 
         executorService.execute {

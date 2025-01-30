@@ -9,11 +9,14 @@ class ConversationsRequest(
 ): AbstractRequest {
 
     override fun generateRequest(): Request {
-        return Request.Builder()
+        val req = Request.Builder()
             .url(Config.CONVERSATIONS_URL.plus(atlasUser.atlasId))
-            .header("x-atlas-user-hash", atlasUser.hash)
             .header("Content-Type", "application/json")
-            .get()
-            .build()
+
+        atlasUser.hash?.let {
+            req.header("x-atlas-user-hash", it)
+        }
+
+        return req.get().build()
     }
 }

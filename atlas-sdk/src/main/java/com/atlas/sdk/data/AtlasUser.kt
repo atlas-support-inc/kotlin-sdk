@@ -8,7 +8,7 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class AtlasUser(
     val id: String,
-    val hash: String,
+    val hash: String? = null,
     var atlasId: String? = null,
     val name: String? = null,
     val email: String? = null,
@@ -16,7 +16,7 @@ data class AtlasUser(
 ) : Parcelable {
 
     val isEmpty
-        get() = id.isEmpty() && hash.isEmpty() && atlasId.isNullOrEmpty()
+        get() = id.isEmpty() && (hash?.isEmpty() ?: true) && atlasId.isNullOrEmpty()
 
     companion object {
         val EMPTY_USER = AtlasUser("", "")

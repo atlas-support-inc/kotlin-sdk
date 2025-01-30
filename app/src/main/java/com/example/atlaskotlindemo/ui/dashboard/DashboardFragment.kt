@@ -71,7 +71,7 @@ class DashboardFragment : Fragment() {
 
         binding.logoutButton.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
-                AtlasSdk.identify()
+                AtlasSdk.identify(userId = (user?.id ?: ""))
                 binding.loginField.text.clear()
             }
         }

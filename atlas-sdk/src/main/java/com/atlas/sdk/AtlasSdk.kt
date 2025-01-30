@@ -77,7 +77,7 @@ object AtlasSdk {
         override fun onChangeIdentity(atlasId: String?, userId: String?, userHash: String?) {
             // Log.d(TAG, "onChangeIdentity:$atlasId $userId $userHash")
             val user = if (atlasUser == null)
-                AtlasUser(userId ?: "", userHash ?: "", atlasId)
+                AtlasUser(userId ?: "", userHash, atlasId)
             else
                 atlasUser!!.apply { this.atlasId = atlasId }
 
@@ -171,19 +171,26 @@ object AtlasSdk {
 
     // Visible to Java
     @JvmOverloads
-    fun identifyAsync(userId: String? = null, userHash: String? = null, userName: String? = null, userEmail: String? = null
+    fun identifyAsync(
+        userId: String,
+        userHash: String? = null,
+        userDetails: Map<String, String?> = emptyMap() // Dictionary for userName, userEmail, phoneNumber
     ) {
+        val userName = userDetails["userName"]
+        val userEmail = userDetails["userEmail"]
+        val phoneNumber = userDetails["phoneNumber"]
+
         executorService.execute {
             runBlocking {
-                identify(userId, userHash, userName, userEmail)
+                identify(userId, userHash, userName, userEmail, phoneNumber)
             }
         }
     }
 
     @JvmSynthetic
-    suspend fun identify(userId: String? = null, userHash: String? = null, userName: String? = null, userEmail: String? = null) {
+    suspend fun identify(userId: String, userHash: String? = null, userName: String? = null, userEmail: String? = null, phoneNumber: String? = null) {
         coroutineScope {
-            var user = AtlasUser(userId ?: "", userHash ?: "", null, userName, userEmail)
+            var user = AtlasUser(userId, userHash, null, userName, userEmail, phoneNumber)
             restore(user)
         }
     }

@@ -20,18 +20,20 @@ class UpdateCustomFieldsRequest(
         jsonObject.put("conversationId", ticketId)
         jsonObject.put("customFields", gson.toJson(customData))
 
-        return Request.Builder()
+        val req = Request.Builder()
             .url(
                 Config.UPDATE_CUSTOM_FIELDS_URL.plus(atlasUser.atlasId)
                     .plus("/update_custom_fields")
             )
-            .header("x-atlas-user-hash", atlasUser.hash)
-            .post(
-                jsonObject.toString()
-                    .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
-            )
             .header("Content-Type", "application/json")
-            .build()
+
+        atlasUser.hash?.let {
+            req.header("x-atlas-user-hash", it)
+        }
+
+        return req.post(
+            jsonObject.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+        ).build()
     }
 
 }

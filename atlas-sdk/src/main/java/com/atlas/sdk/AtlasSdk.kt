@@ -174,23 +174,23 @@ object AtlasSdk {
     fun identifyAsync(
         userId: String,
         userHash: String? = null,
-        userDetails: Map<String, String?> = emptyMap() // Dictionary for userName, userEmail, phoneNumber
+        userDetails: Map<String, String?> = emptyMap() // Dictionary for name, email, phoneNumber
     ) {
-        val userName = userDetails["name"]
-        val userEmail = userDetails["email"]
+        val name = userDetails["name"]
+        val email = userDetails["email"]
         val phoneNumber = userDetails["phoneNumber"]
 
         executorService.execute {
             runBlocking {
-                identify(userId, userHash, userName, userEmail, phoneNumber)
+                identify(userId, userHash, name, email, phoneNumber)
             }
         }
     }
 
     @JvmSynthetic
-    suspend fun identify(userId: String, userHash: String? = null, userName: String? = null, userEmail: String? = null, phoneNumber: String? = null) {
+    suspend fun identify(userId: String, userHash: String? = null, name: String? = null, email: String? = null, phoneNumber: String? = null) {
         coroutineScope {
-            var user = AtlasUser(userId, userHash, null, userName, userEmail, phoneNumber)
+            var user = AtlasUser(userId, userHash, null, name, email, phoneNumber)
             restore(user)
         }
     }

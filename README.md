@@ -7,7 +7,7 @@ To utilize Atlas Kotlin SDK, copy **atlas-sdk-aar** (or download it from [https:
 ```kts
 // In build.gradle.kts. Check fo latest version
 dependencies {
-    implementation("so.atlas:atlas-sdk:1.4.0") 
+    implementation("so.atlas:atlas-sdk:1.5.1") 
 }
 ```
 
@@ -43,14 +43,14 @@ To bind Atlas tickets to your user, confidently execute the identify method by i
 
 ```kt
 CoroutineScope(Dispatchers.IO).launch {
-    AtlasSdk.identify(userId = "...", userHash = "...", userName = "...", userEmail = "...")
+    AtlasSdk.identify(userId = "...", userHash = "...", name = "...", email = "...")
 }
 ```
 
-For logging out the user, simply call the identify method with a null value:
+For logging out the user, simply call the `logout` method
 
 ```kt
-atlasSdk.identify(userId = null)
+atlasSdk.logout()
 ```
 
 ### For Java Developers
@@ -59,18 +59,21 @@ In addition to the standard Kotlin implementation, we provide an `identifyAsync`
 
 #### Example in Java:  
 ```java
-
-AtlasSdk.identifyAsync("userId", "userHash", "userName", "userEmail")
-        .thenRun(() -> System.out.println("User identified successfully"))
-        .exceptionally(e -> {
-            e.printStackTrace();
-            return null;
-        });
+AtlasSdk.identifyAsync("USER_ID", "USER_HASH" /* or null */, Map.of(
+    "name", "Jon Doe",
+    "email", "jon@doe.com",
+    "phoneNumber", "+1234567890"
+))
+    .thenRun(() -> System.out.println("User identified successfully"))
+    .exceptionally(e -> {
+        e.printStackTrace();
+        return null;
+    });
 ```
 
-To log out the user in Java, pass `null` for all arguments:  
+To log out the user in Java, call the `logoutAsync` method:
 ```java
-AtlasSdk.identifyAsync(null, null, null, null)
+AtlasSdk.logoutAsync()
         .thenRun(() -> System.out.println("User logged out successfully"));
 ```
 

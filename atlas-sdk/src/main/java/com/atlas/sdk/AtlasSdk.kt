@@ -207,7 +207,7 @@ object AtlasSdk {
     @JvmSynthetic
     suspend fun logout() {
         coroutineScope {
-            val user = AtlasUser("", null, null, "", "", "")
+            val user = AtlasUser("", null, null, null, null, null)
             restore(user)
         }
     }

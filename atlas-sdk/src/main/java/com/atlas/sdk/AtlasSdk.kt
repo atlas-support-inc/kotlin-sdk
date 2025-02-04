@@ -190,7 +190,24 @@ object AtlasSdk {
     @JvmSynthetic
     suspend fun identify(userId: String, userHash: String? = null, name: String? = null, email: String? = null, phoneNumber: String? = null) {
         coroutineScope {
-            var user = AtlasUser(userId, userHash, null, name, email, phoneNumber)
+            val user = AtlasUser(userId, userHash, null, name, email, phoneNumber)
+            restore(user)
+        }
+    }
+
+    @JvmOverloads
+    suspend fun logoutAsync() {
+        executorService.execute {
+            runBlocking {
+                logout()
+            }
+        }
+    }
+
+    @JvmSynthetic
+    suspend fun logout() {
+        coroutineScope {
+            val user = AtlasUser("", null, null, null, null, null)
             restore(user)
         }
     }

@@ -12,7 +12,7 @@ plugins {
 
 android {
     namespace = "com.atlas.sdk"
-    compileSdk = 34
+    compileSdk = 33
 
     defaultConfig {
         minSdk = 21

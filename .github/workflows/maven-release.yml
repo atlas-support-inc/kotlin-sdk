@@ -1,10 +1,11 @@
 name: Release Kotlin SDK
 
 on:
-  workflow_dispatch:
   push:
     branches:
-      - 'release/1.6.2'
+      - 'feature/Configure-github-actions'
+    pull_request:
+      types: [opened, synchronize, reopened]
 
 jobs:
   release:

@@ -106,20 +106,21 @@ To include a `FragmentContainerView` in your layout:
 Follow these steps to add and display the `AtlasFragment` dynamically:  
 
 1. **Create the `AtlasFragment`:**  
-   ```kotlin
-   val atlasFragment = AtlasSdk.getAtlasFragment()
-   ```
+```kotlin
+val atlasFragment = AtlasSdk.getAtlasFragment()
+```
 
 2. **Replace the Current Fragment with `AtlasFragment`:**  
-   ```kotlin
-   childFragmentManager.beginTransaction()
-       .replace(binding.fragmentContainerView.id, atlasFragment)
-       .commitNow()
-   ```
+```kotlin
+childFragmentManager.beginTransaction()
+    .replace(binding.fragmentContainerView.id, atlasFragment)
+    .commitNow()
+```
 
 This allows you to replace the existing `Fragment` in your app with the `AtlasFragment` in fullscreen or within a designated container.
 
 #### Additional query parameters
+
 `query` (String)
 
 An optional `query` parameter in string format. The `query` is used to configure the behavior or content of the returned AtlasFragment.
@@ -127,12 +128,17 @@ An optional `query` parameter in string format. The `query` is used to configure
 - Expected format: "key1: value1; key2: value2; ...."
 
 ```kotlin
-    val atlasFragment = AtlasSdk.getAtlasFragment(query = "chatbotKey: report_bug; prefer: last")
-   ```
+// Initiate fragment and immediately start chatbot with report_bug key (chatbotKey: report_bug), or open the last one if exists (prefer: last)
+val atlasFragmentWithChatbot = AtlasSdk.getAtlasFragment(query = "chatbotKey: report_bug; prefer: last")
+// Initiate fragment and immediately open helpcenter
+val atlasFragmentWithChatbot = AtlasSdk.getAtlasFragment(query = "open: helpcenter")
+```
 
 `chatbotKey: KEY`: Specifies the chatbot that has to be started immediately when AtlasFragment is loaded
 
 `prefer: last`: Instead of starting new chatbot everytime it will open the last not completed chatbot if exists
+
+`open: helpcenter` Starts widget with HelpCenter screen
 
 #### Additionally, you can monitor events occurring within the Atlas view:
 

@@ -3,7 +3,7 @@ name: Release Kotlin SDK
 on:
   push:
     branches:
-      - 'feature/Configure-github-actions'
+      - 'release/1.6.2'
     pull_request:
       types: [opened, synchronize, reopened]
 

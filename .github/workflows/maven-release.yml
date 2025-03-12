@@ -3,7 +3,7 @@ name: Release Kotlin SDK
 on:
   push:
     branches:
-      - 'release/1.6.2'
+      - 'release/**'
     pull_request:
       types: [opened, synchronize, reopened]
 

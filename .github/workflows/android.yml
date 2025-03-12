@@ -2,10 +2,9 @@ name: Release Kotlin SDK
 
 on:
   workflow_dispatch:
-
   push:
     branches:
-      - "release/**"
+      - "release/1.6.2"
 
 jobs:
   release:

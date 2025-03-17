@@ -23,6 +23,12 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
+      - name: Import GPG Key
+        run: |
+          echo "${{ secrets.SIGNING_KEY }}" | gpg --batch --import
+        env:
+          GPG_KEY: ${{ secrets.SIGNING_KEY }}
+
       - name: Grant Execute Permission for Gradlew
         run: chmod +x gradlew
 
@@ -34,5 +40,5 @@ jobs:
         env:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
-          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
           SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}

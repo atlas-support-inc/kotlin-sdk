@@ -10,6 +10,17 @@ plugins {
     id("com.gradleup.nmcp") version "0.0.8"
 }
 
+nmcp {
+    publishAllPublications {
+        val keyUsername = "SONATYPE_USERNAME"
+        val keyPassword = "SONATYPE_PASSWORD"
+        username = findProperty(keyUsername)?.toString() ?: System.getenv(keyUsername)
+        password = findProperty(keyPassword)?.toString() ?: System.getenv(keyPassword)
+
+        publicationType = "USER_MANAGED"
+    }
+}
+
 android {
     namespace = "com.atlas.sdk"
     compileSdk = 33

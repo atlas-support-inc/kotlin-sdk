@@ -25,6 +25,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: 17
+          cache: 'gradle'
 
       - name: Make Gradle Executable
         run: chmod +x ./gradlew
@@ -63,7 +64,7 @@ jobs:
           echo "$GPG_KEY" | base64 --decode | gpg --batch --import
 
       - name: Build all modules 
-      - run: ./gradlew build --stacktrace
+        run: ./gradlew build --stacktrace
 
       - name: Upload Library to Maven Central
         run: ./gradlew :atlas-sdk:publishAndReleaseToMavenCentral --no-configuration-cache --stacktrace --info --warning-mode all

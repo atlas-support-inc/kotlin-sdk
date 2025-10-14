@@ -2,12 +2,16 @@ package com.atlas.sdk.view
 
 import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK
+import android.app.DownloadManager
+import android.content.ActivityNotFoundException
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
+import android.os.Message
 import android.provider.MediaStore
 import android.util.AttributeSet
 import android.view.View
@@ -19,6 +23,7 @@ import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.webkit.URLUtil
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.ActivityResultRegistry
@@ -130,6 +135,19 @@ internal class AtlasView : WebView {
                 return super.onConsoleMessage(consoleMessage)
             }
 
+            override fun onCreateWindow(
+                view: WebView?,
+                isDialog: Boolean,
+                isUserGesture: Boolean,
+                resultMsg: Message?
+            ): Boolean {
+                val url = view?.hitTestResult?.extra
+                if (!url.isNullOrEmpty()) {
+                    openExternalUrl(url)
+                }
+                return false
+            }
+
             override fun onShowFileChooser(
                 webView: WebView?,
                 filePathCallback: ValueCallback<Array<Uri>>?,
@@ -149,6 +167,7 @@ internal class AtlasView : WebView {
             databaseEnabled = true
             domStorageEnabled = true
             mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+            setSupportMultipleWindows(true)
         }
 
         setWebContentsDebuggingEnabled(true)
@@ -156,6 +175,10 @@ internal class AtlasView : WebView {
 
         (context as? FragmentActivity)?.activityResultRegistry?.let { registry ->
             filePickerLifeCycleObserver = FilePickerLifeCycleObserver(registry)
+        }
+
+        setDownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
+            handleDownloadRequest(url, userAgent, contentDisposition, mimeType)
         }
     }
 
@@ -198,6 +221,57 @@ internal class AtlasView : WebView {
         val url = uriWithParam.build().toString()
 
         loadUrl(url)
+    }
+
+    private fun handleDownloadRequest(
+        url: String?,
+        userAgent: String?,
+        contentDisposition: String?,
+        mimeType: String?
+    ) {
+        if (url.isNullOrEmpty()) {
+            return
+        }
+
+        val request = DownloadManager.Request(Uri.parse(url)).apply {
+            setMimeType(mimeType)
+            userAgent?.let { addRequestHeader("User-Agent", it) }
+            setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            val fileName = URLUtil.guessFileName(url, contentDisposition, mimeType)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                setDestinationInExternalFilesDir(context, Environment.DIRECTORY_DOWNLOADS, fileName)
+            } else {
+                @Suppress("DEPRECATION")
+                setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
+            }
+        }
+
+        val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as? DownloadManager
+        try {
+            if (downloadManager != null) {
+                downloadManager.enqueue(request)
+            } else {
+                openExternalUrl(url)
+            }
+        } catch (securityException: SecurityException) {
+            openExternalUrl(url)
+        } catch (illegalArgumentException: IllegalArgumentException) {
+            openExternalUrl(url)
+        }
+    }
+
+    private fun openExternalUrl(url: String) {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+
+        try {
+            context.startActivity(intent)
+        } catch (activityNotFoundException: ActivityNotFoundException) {
+            val message = "Unable to open link: $url"
+            sdkAtlasMessageHandler?.onError(message)
+            atlasMessageHandler?.onError(message)
+        }
     }
 
     override fun onAttachedToWindow() {
